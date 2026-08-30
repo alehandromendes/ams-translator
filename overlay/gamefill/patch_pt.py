@@ -31,6 +31,26 @@ TERMS_CSV = PKG_DIR / "game_terms.csv"
 
 RUNTIME_REL = "lua/mods/cpdd_runtime_fixes/RuntimeTextGemini.lua"
 BACKUP_NAME = "RuntimeTextGemini.lua.orig"
+INIT_REL = "lua/mods/cpdd_runtime_fixes/Init.lua"
+INIT_BACKUP_NAME = "Init.lua.orig"
+
+# tabelas de override do Init.lua com texto EN pra traduzir. tipo:
+#   kv     -> [id]="v" | NAME="v" | ["key"]="v"   (traduz o valor)
+#   nested -> mod = { [id]="v", ... }             (traduz os valores)
+#   pairs  -> { "cn", "EN" }                       (traduz o 2º)
+INIT_TABLES = [
+    ("aggregateOverrides", "kv"),
+    ("splitOverrides", "nested"),
+    ("stringConstOverrides", "kv"),
+    ("visibleTextExactOverrides", "kv"),
+    ("visibleTextReplacements", "pairs"),
+    ("marionetteEnglishNames", "kv"),
+    ("shortMenuLabels", "kv"),
+]
+_STR = r'"(?:\\.|[^"\\])*"'
+_KV_VALUE = re.compile(r'(?:\][ \t]*|[A-Za-z_]\w*[ \t]*)=[ \t\r\n]*(' + _STR + r')', re.S)
+_PAIR = re.compile(r'\{[ \t\r\n]*(' + _STR + r')[ \t\r\n]*,[ \t\r\n]*(' + _STR
+                   + r')[ \t\r\n]*,?', re.S)
 
 _ENTRY = re.compile(r'\[("(?:\\.|[^"\\])*")\]\s*=\s*("(?:\\.|[^"\\])*")', re.S)
 _HAN = re.compile(r"[\u3400-\u9fff\uf900-\ufaff]")
@@ -165,6 +185,57 @@ def _restore(text: str, toks: list[str]) -> str:
     return text
 
 
+def _brace_slice(text: str, table_name: str) -> tuple[int, int] | None:
+    """(início, fim) do CONTEÚDO de `local <table_name> = { ... }` (sem as chaves)."""
+    m = re.search(r'\blocal[ \t]+' + re.escape(table_name) + r'[ \t]*=[ \t]*\{', text)
+    if not m:
+        return None
+    i = m.end()                       # logo após o {
+    depth = 1
+    n = len(text)
+    while i < n and depth:
+        c = text[i]
+        if c == '"':
+            i += 1
+            while i < n and text[i] != '"':
+                i += 2 if text[i] == '\\' else 1
+        elif c == '{':
+            depth += 1
+        elif c == '}':
+            depth -= 1
+            if depth == 0:
+                return m.end(), i
+        i += 1
+    return None
+
+
+def _init_targets(text: str) -> list[tuple[int, int, str]]:
+    """Todos os valores EN traduzíveis do Init.lua: (offset_ini, offset_fim, en)."""
+    spans: list[tuple[int, int, str]] = []
+    for name, kind in INIT_TABLES:
+        sl = _brace_slice(text, name)
+        if not sl:
+            continue
+        a, b = sl
+        chunk = text[a:b]
+        if kind == "pairs":
+            for m in _PAIR.finditer(chunk):
+                s = m.group(2)
+                spans.append((a + m.start(2), a + m.end(2),
+                              luatable.unescape(s[1:-1])))
+        else:
+            subranges = [(0, len(chunk))]
+            if kind == "nested":
+                subranges = [(mm.start(), mm.end()) for mm in
+                             re.finditer(r'\{[^{}]*\}', chunk)] or subranges
+            for sa, sb in subranges:
+                for m in _KV_VALUE.finditer(chunk, sa, sb):
+                    s = m.group(1)
+                    spans.append((a + m.start(1), a + m.end(1),
+                                  luatable.unescape(s[1:-1])))
+    return sorted(spans)
+
+
 # ---------------------------------------------------------------------------
 @dataclass
 class Progress:
@@ -179,9 +250,11 @@ class PatchTranslator:
     def __init__(self, mods_dir: Path) -> None:
         self.mods_dir = Path(mods_dir)
         self.path = self.mods_dir / RUNTIME_REL
+        self.init_path = self.mods_dir / INIT_REL
         STATE_DIR.mkdir(parents=True, exist_ok=True)
         BACKUP_DIR.mkdir(parents=True, exist_ok=True)
         self.backup = BACKUP_DIR / BACKUP_NAME
+        self.init_backup = BACKUP_DIR / INIT_BACKUP_NAME
         self._cache: dict[str, str] = _read_json(CACHE_PATH)
         self._dirty = 0
 
@@ -264,17 +337,56 @@ class PatchTranslator:
         return (bool(_LATIN.search(en)) and not _HAN.search(en)
                 and len(en) <= 5000)
 
+    # ---- laço de tradução compartilhado -------------------------
+    def _fill_cache(self, todo: list[str], prog: Progress,
+                    progress_cb, should_stop) -> str | None:
+        """Traduz o que falta pro cache. Devolve fase de parada ('parado' /
+        'limite…') ou None se terminou tudo."""
+        fails = 0
+        for chunk in self._chunks(todo):
+            if should_stop and should_stop():
+                return "parado"
+            masks = [_protect(en) for en in chunk]
+            res = self._translate_batch([m for m, _ in masks], should_stop)
+            if res is None:
+                fails += 1
+                if fails >= 6:
+                    return "limite de uso — tente de novo mais tarde"
+                self._sleep(3 * fails, should_stop)
+                continue
+            fails = 0
+            for en, (_m, toks), pt_masked in zip(chunk, masks, res):
+                self._cache[en] = _restore(translator._clean(pt_masked) or en, toks) or en
+                self._dirty += 1
+            prog.translated += len(chunk)
+            prog.pending = max(0, prog.pending - len(chunk))
+            self._save_cache()
+            if progress_cb:
+                progress_cb(prog)
+        return None
+
     # ---- fluxo principal --------------------------------------
-    def run(self, progress_cb=None, should_stop=None) -> Progress:
+    def run(self, progress_cb=None, should_stop=None,
+            targets: tuple[str, ...] = ("runtime",)) -> Progress:
         prog = Progress(phase="lendo")
         if progress_cb:
             progress_cb(prog)
+
         entries = self.parse()
-        prog.total = len(entries)
-        # dedupe preservando ordem (a 1ª ocorrência)
+        init_txt = ""
+        init_spans: list[tuple[int, int, str]] = []
+        if "init" in targets and self.init_path.exists():
+            init_txt = self._init_source().read_text("utf-8", errors="replace")
+            init_spans = _init_targets(init_txt)
+
+        prog.total = len(entries) + len(init_spans)
         seen: set[str] = set()
         uniq: list[str] = []
         for _k, en in entries:
+            if en not in seen and self._translatable(en):
+                seen.add(en)
+                uniq.append(en)
+        for _a, _b, en in init_spans:
             if en not in seen and self._translatable(en):
                 seen.add(en)
                 uniq.append(en)
@@ -285,44 +397,48 @@ class PatchTranslator:
         if progress_cb:
             progress_cb(prog)
 
-        fails = 0
-        for chunk in self._chunks(todo):
-            if should_stop and should_stop():
-                prog.phase = "parado"
-                break
-            masks = [_protect(en) for en in chunk]          # lazy: só o lote atual
-            res = self._translate_batch([m for m, _ in masks], should_stop)
-            if res is None:
-                fails += 1
-                if fails >= 6:          # provedores travados → para e retoma depois
-                    prog.phase = "limite de uso — tente de novo mais tarde"
-                    break
-                self._sleep(3 * fails, should_stop)
-                continue                                    # pendente, retoma depois
-            fails = 0
-            for en, (_m, toks), pt_masked in zip(chunk, masks, res):
-                pt = _restore(translator._clean(pt_masked) or en, toks)
-                self._cache[en] = pt or en
-                self._dirty += 1
-            prog.translated += len(chunk)
-            prog.pending = max(0, prog.pending - len(chunk))
-            self._save_cache()
-            if progress_cb:
-                progress_cb(prog)
-
+        stop_phase = self._fill_cache(todo, prog, progress_cb, should_stop)
         self._save_cache(force=True)
-        stopped = (should_stop and should_stop()) or prog.phase.startswith("limite")
-        end_phase = prog.phase if stopped and prog.phase != "traduzindo" else None
+
         prog.phase = "gravando"
         if progress_cb:
             progress_cb(prog)
-        self.write(entries)                 # grava o que já tem (resto fica EN)
+        if "runtime" in targets:
+            self.write(entries)
+        if init_spans:
+            self.write_init(init_txt, init_spans)
+
         prog.applied = True
-        prog.phase = end_phase or ("parado" if stopped else "pronto")
+        prog.phase = stop_phase or "pronto"
         self._save_state(prog)
         if progress_cb:
             progress_cb(prog)
         return prog
+
+    # ---- Init.lua ------------------------------------------------
+    def _init_source(self) -> Path:
+        return self.init_backup if self.init_backup.exists() else self.init_path
+
+    def write_init(self, txt: str = "", spans: list | None = None) -> int:
+        if not self.init_path.exists():
+            return 0
+        if not txt:
+            txt = self._init_source().read_text("utf-8", errors="replace")
+            spans = _init_targets(txt)
+        if not self.init_backup.exists():
+            self.init_backup.write_bytes(self.init_path.read_bytes())
+
+        n = 0
+        out = txt
+        for a, b, en in sorted(spans, reverse=True):        # direita → esquerda
+            pt = self._cache.get(en)
+            if pt and pt != en:
+                out = out[:a] + '"' + luatable.escape(pt) + '"' + out[b:]
+                n += 1
+        tmp = self.init_path.with_suffix(".lua.tmp")
+        tmp.write_text(out, encoding="utf-8")
+        os.replace(tmp, self.init_path)
+        return n
 
     # ---- gravação -----------------------------------------------
     def write(self, entries: list[tuple[str, str]] | None = None) -> int:
@@ -350,14 +466,19 @@ class PatchTranslator:
         return n_pt
 
     def restore(self) -> bool:
-        if not self.backup.exists():
-            return False
-        self.path.write_bytes(self.backup.read_bytes())
-        st = _read_json(STATE_PATH)
-        st["applied"] = False
-        st["restored_at"] = _dt.datetime.now().isoformat(timespec="seconds")
-        STATE_PATH.write_text(json.dumps(st, ensure_ascii=False, indent=1), "utf-8")
-        return True
+        did = False
+        if self.backup.exists():
+            self.path.write_bytes(self.backup.read_bytes())
+            did = True
+        if self.init_backup.exists():
+            self.init_path.write_bytes(self.init_backup.read_bytes())
+            did = True
+        if did:
+            st = _read_json(STATE_PATH)
+            st["applied"] = False
+            st["restored_at"] = _dt.datetime.now().isoformat(timespec="seconds")
+            STATE_PATH.write_text(json.dumps(st, ensure_ascii=False, indent=1), "utf-8")
+        return did
 
     # ---- estado / status -------------------------------------
     def _save_state(self, prog: Progress) -> None:
@@ -375,6 +496,11 @@ class PatchTranslator:
             entries = self.parse()
             total = len(entries)
             uniq = {en for _k, en in entries if self._translatable(en)}
+            if self.init_path.exists():
+                spans = _init_targets(
+                    self._init_source().read_text("utf-8", errors="replace"))
+                total += len(spans)
+                uniq |= {en for _a, _b, en in spans if self._translatable(en)}
             translated = sum(1 for en in uniq if en in self._cache)
             pending = len(uniq) - translated
         except Exception:  # noqa: BLE001
@@ -393,8 +519,11 @@ def main(argv: list[str] | None = None) -> int:
         description="Traduz EN->PT o RuntimeTextGemini.lua do CPDD English patch de LoM.",
     )
     ap.add_argument("--mods-dir", help=".../C7/Saved/Mods (autodetecta se omitido)")
-    ap.add_argument("--restore", action="store_true", help="volta o RuntimeTextGemini original")
+    ap.add_argument("--restore", action="store_true",
+                    help="volta RuntimeTextGemini.lua e Init.lua originais")
     ap.add_argument("--status", action="store_true", help="só mostra o progresso")
+    ap.add_argument("--no-init", action="store_true",
+                    help="não traduz o Init.lua (só o RuntimeTextGemini)")
     args = ap.parse_args(argv)
 
     md = find_mods_dir(args.mods_dir)
@@ -422,7 +551,8 @@ def main(argv: list[str] | None = None) -> int:
             last[0] = now
             print(f"  [{p.phase}] {p.translated}/{p.total}  (faltam {p.pending})")
 
-    p = pt.run(progress_cb=cb)
+    targets = ("runtime",) if args.no_init else ("runtime", "init")
+    p = pt.run(progress_cb=cb, targets=targets)
     print(f"\n{p.phase}: {p.translated}/{p.total} traduzidas.  "
           f"Restaurar: python -m overlay.gamefill.patch_pt --restore")
     return 0

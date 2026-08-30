@@ -24,6 +24,10 @@
         {
           "src": "lord-of-mysteries/RuntimeTextGemini.lua",
           "dest": "lua/mods/cpdd_runtime_fixes/RuntimeTextGemini.lua"
+        },
+        {
+          "src": "lord-of-mysteries/Init.lua",
+          "dest": "lua/mods/cpdd_runtime_fixes/Init.lua"
         }
       ]
     }

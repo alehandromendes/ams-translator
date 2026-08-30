@@ -16,10 +16,11 @@ funciona com qualquer jogo. Duas frentes:
 
 ## ⬇️ Download
 
-| | |
-|---|---|
-| **Instalador (recomendado)** | **[download/TradutorDeLegendasSetup.exe](download/TradutorDeLegendasSetup.exe)** — ou na página de **[Releases][rel]** |
-| **Link direto (sempre a última versão)** | `https://github.com/alehandromendes/tradutor-legendas/releases/latest/download/TradutorDeLegendasSetup.exe` |
+### 👉 [**Baixar TradutorDeLegendasSetup.exe**](https://github.com/alehandromendes/tradutor-legendas/raw/main/download/TradutorDeLegendasSetup.exe)
+
+Também disponível na pasta [`download/`](download/) do repositório e na página de
+**[Releases][rel]**. Link fixo para a última versão:
+`.../releases/latest/download/TradutorDeLegendasSetup.exe`
 
 Assistente de instalação em PT-BR / EN, cria atalhos no menu Iniciar e na área de
 trabalho. **Windows 10/11 (64 bits). Não precisa de Python.**

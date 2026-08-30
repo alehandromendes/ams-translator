@@ -177,6 +177,28 @@ pasta do usuário do jogo (`Saved/Mods/`), fora da verificação de integridade 
 
 Python · PySide6 · mss · RapidOCR (onnxruntime) · Pillow · requests · keyboard · PyInstaller · Inno Setup
 
+---
+
+## Sobre as traduções
+
+Tudo aqui — legendas capturadas ao vivo e pacotes da
+[biblioteca de traduções][lib] — é traduzido por **inteligência artificial**
+(tradução automática, sem chave de API e sem revisão humana linha a linha), com
+**estratégias de desambiguação voltadas a jogos**:
+
+- **Dicionário de termos ambíguos** (`overlay/gamefill/game_terms.csv`) — fixa o
+  sentido de jogo de palavras com duas leituras: *gear* → equipamento (não
+  "engrenagem"), *cast* → conjurar, *dungeon* → masmorra, *cooldown* → recarga,
+  *raid* → raide, *party mode* → modo em grupo…
+- **Termos do universo preservados** — *Beyonder*, *Sequência*, *Caminho*,
+  *Vigia Noturno*, *Marionete*, mais o glossário de nomes próprios
+  (`glossary/*.csv`), aplicado **antes** de traduzir.
+- **Marcação protegida** — tags (`<InvHighlight>`, `<Mark id=…>`), variáveis
+  (`%s`, `{0}`) e quebras de linha passam intactas pela tradução.
+
+É tradução de máquina e pode escorregar. Nas traduções de jogos, o **arquivo
+original é salvo antes de instalar** e restaurado em um clique.
+
 ## Licença
 
 [MIT](LICENSE) © 2026 Alehandro Mendes. Este projeto não redistribui conteúdo dos jogos.

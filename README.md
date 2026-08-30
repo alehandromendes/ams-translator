@@ -61,19 +61,21 @@ Todos os atalhos são reconfiguráveis em **Atalhos** (grave qualquer combinaç�
 
 ## Modo 2 — Tradução de jogos
 
-Botão **Tradução de jogos** na barra de ações:
+Botão **Tradução de jogos** na barra de ações. O app lê o índice da
+[biblioteca de traduções][lib] e conduz o fluxo:
 
-1. O app lê o índice da [biblioteca de traduções][lib] no GitHub.
-2. **Baixar** — traz os arquivos da tradução para `…/TradutorDeLegendas/traducoes/<jogo>/`.
-3. O app **detecta a pasta do jogo** e confere se a estrutura bate com o esperado.
-4. **Instalar** — copia os arquivos para o jogo, guardando o original antes.
+1. **Acha a pasta do jogo** (autodetect ou *Procurar*).
+2. **Dependência** — se a tradução precisa de uma base (ex.: o CPDD English patch),
+   o app detecta se está instalada. Se não: baixa o **instalador oficial** da fonte
+   dela e abre o wizard. *Nada da dependência fica hospedado neste projeto.*
+3. **Baixar** — traz os arquivos PT para `…/TradutorDeLegendas/traducoes/<jogo>/`.
+4. **Instalar** — copia para o jogo, guardando o original antes.
 5. **Restaurar original** desfaz a qualquer momento.
 
-Suporte inicial: **Lord of Mysteries** — tradução em ponte **中文 → EN → PT-BR**. O jogo
-é em chinês; o [CPDD English patch](https://github.com/Lani27/lord-of-mysteries-english-patch)
-já faz 中文 → inglês, e este pacote traduz o inglês do patch → PT-BR (o inglês serve de
-pivô: nomes já vêm anglicizados e a tradução sai melhor que CN→PT direto). Reinstale
-após cada atualização do patch.
+Suporte inicial: **Lord of Mysteries** — ponte **中文 → EN → PT-BR**. O jogo é em
+chinês; o [CPDD English patch](https://github.com/Lani27/lord-of-mysteries-english-patch)
+faz 中文 → inglês (e a ponte de carregamento no `.pak` — a parte difícil), e este pacote
+traduz o inglês do patch → PT-BR. Reinstale após cada atualização do patch.
 
 ---
 

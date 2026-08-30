@@ -1,5 +1,5 @@
 {
-  "schema": 1,
+  "schema": 2,
   "updated": "2026-08-30",
   "note": "Índice embutido (fallback). O app tenta primeiro o repo tradutor-legendas-traducoes no GitHub.",
   "games": [
@@ -9,26 +9,37 @@
       "source_lang": "zh-CN",
       "via_lang": "en",
       "target_lang": "pt-BR",
-      "based_on": "ponte pelo CPDD English patch (Lani27) — c7-en-20260821",
-      "note": "O jogo é em chinês. O CPDD English patch já traduz 中文 → inglês; este pacote traduz o inglês do patch → PT-BR, formando a ponte 中文 → EN → PT-BR. Cobre o RuntimeTextGemini + Init.lua (diálogo e texto de runtime). Nomes de item/skill que vêm do StringDB compilado ficam em inglês.",
+      "based_on": "ponte pelo CPDD English patch (Lani27)",
+      "note": "O jogo é em chinês. O CPDD English patch faz 中文 → inglês (e a ponte no .pak); este pacote traduz o inglês do patch → PT-BR — ponte 中文 → EN → PT-BR. Cobre o RuntimeTextGemini + Init.lua (diálogo e texto de runtime). Nomes de item/skill do StringDB compilado ficam em inglês.",
       "default_dirs": [
-        "C:/Jogos/Game/C7/Saved/Mods",
-        "C:/Program Files (x86)/Steam/steamapps/common/Lord of Mysteries/C7/Saved/Mods",
-        "D:/Steam/steamapps/common/Lord of Mysteries/C7/Saved/Mods"
+        "C:/Jogos/Game/C7",
+        "C:/Program Files (x86)/Steam/steamapps/common/Lord of Mysteries/C7",
+        "D:/Steam/steamapps/common/Lord of Mysteries/C7",
+        "C:/Games/Lord of Mysteries/C7"
       ],
-      "requires": [
-        "bootstrap.lua",
-        "lua/mods/cpdd_runtime_fixes/RuntimeTextGemini.lua",
-        "lua/mods/cpdd_runtime_fixes/Init.lua"
+      "game_markers": [
+        "Binaries/Win64/C7-Win64-Shipping.exe"
       ],
+      "dependency": {
+        "id": "cpdd-english-patch",
+        "name": "CPDD English patch",
+        "detect": [
+          "Saved/Mods/bootstrap.lua",
+          "Saved/Mods/lua/mods/cpdd_runtime_fixes/RuntimeTextGemini.lua"
+        ],
+        "page_url": "https://github.com/Lani27/lord-of-mysteries-english-patch/releases/latest",
+        "api_url": "https://api.github.com/repos/Lani27/lord-of-mysteries-english-patch/releases/latest",
+        "asset_glob": "Lord-of-Mysteries-English-Patch-*.exe",
+        "note": "Base em inglês + a ponte de carregamento no .pak. Instalador OFICIAL do CPDD — baixado do GitHub deles, nunca redistribuído por este projeto. O wizard do CPDD abre; siga: pasta do jogo → pré-check → Install English."
+      },
       "files": [
         {
           "src": "lord-of-mysteries/RuntimeTextGemini.lua",
-          "dest": "lua/mods/cpdd_runtime_fixes/RuntimeTextGemini.lua"
+          "dest": "Saved/Mods/lua/mods/cpdd_runtime_fixes/RuntimeTextGemini.lua"
         },
         {
           "src": "lord-of-mysteries/Init.lua",
-          "dest": "lua/mods/cpdd_runtime_fixes/Init.lua"
+          "dest": "Saved/Mods/lua/mods/cpdd_runtime_fixes/Init.lua"
         }
       ]
     }

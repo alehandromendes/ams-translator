@@ -57,14 +57,15 @@ class _Job(QThread):
 
 
 class _GameCard(QFrame):
-    """Um jogo da biblioteca: info + botão Baixar/Instalar à direita."""
+    """Um jogo da biblioteca: info + botão de ação à direita.
+    Fluxo: (achar pasta) → Instalar base (dependência) → Baixar → Instalar."""
 
     def __init__(self, dlg: "GameTranslateDialog", game: library.Game) -> None:
         super().__init__()
         self.setObjectName("GameCard")
         self.dlg = dlg
         self.game = game
-        self.target: Path | None = None
+        self.root: Path | None = None
 
         outer = QVBoxLayout(self)
         outer.setContentsMargins(14, 12, 14, 12)
@@ -95,11 +96,11 @@ class _GameCard(QFrame):
             note.setWordWrap(True)
             outer.addWidget(note)
 
-        # pasta do jogo
+        # pasta do jogo (raiz — termina em C7)
         row = QHBoxLayout()
         row.setSpacing(6)
         self.path = QLineEdit()
-        self.path.setPlaceholderText("pasta do jogo…")
+        self.path.setPlaceholderText("pasta do jogo (…\\Game\\C7)")
         self.path.setReadOnly(True)
         b_browse = QPushButton("Procurar")
         b_browse.clicked.connect(self._browse)
@@ -119,46 +120,63 @@ class _GameCard(QFrame):
 
     # ------------------------------------------------------------------
     def _use_default(self, initial: bool = False) -> None:
-        t = self.dlg.lib.detect_game_dir(self.game)
-        if t:
-            self.target = t
-            self.path.setText(str(t))
+        r = self.dlg.lib.find_game_root(self.game)
+        if r:
+            self.root = r
+            self.path.setText(str(r))
         elif not initial:
             QMessageBox.information(
                 self, "Pasta padrão",
-                "Não achei a pasta do jogo automaticamente. Use 'Procurar'.")
+                "Não achei a pasta do jogo. Use 'Procurar' e aponte a pasta que "
+                "termina em \\Game\\C7.")
         self.refresh()
 
     def _browse(self) -> None:
-        d = QFileDialog.getExistingDirectory(self, "Pasta do jogo (…/C7/Saved/Mods)",
-                                             self.path.text() or "C:/")
-        if d:
-            self.target = Path(d)
-            self.path.setText(d)
-            self.refresh()
+        d = QFileDialog.getExistingDirectory(
+            self, "Pasta do jogo — a que termina em \\Game\\C7",
+            self.path.text() or "C:/")
+        if not d:
+            return
+        p = Path(d)
+        if not self.dlg.lib.is_game_root(self.game, p):
+            QMessageBox.warning(self, "Pasta do jogo",
+                                "Essa pasta não parece a raiz do jogo (falta o "
+                                "executável em Binaries/Win64).")
+            return
+        self.root = p
+        self.path.setText(d)
+        self.refresh()
 
     # ------------------------------------------------------------------
     def refresh(self) -> None:
-        st = self.dlg.lib.state(self.game, self.target)
-        self.target = Path(st["target"]) if st["target"] else self.target
+        st = self.dlg.lib.state(self.game, self.root)
+        self.root = Path(st["root"]) if st["root"] else self.root
+        dep = self.game.dependency
 
-        if st["missing"]:
-            self.check.setText("✗ falta na pasta: " + ", ".join(st["missing"][:3]))
-        elif self.target:
-            self.check.setText("✓ estrutura do jogo confere")
+        if not st["root_ok"]:
+            self.check.setText("escolha a pasta do jogo (…\\Game\\C7)")
+        elif dep and not st["dep_ok"]:
+            self.check.setText(f"✗ falta a base: {dep.name} não está instalado")
+        elif st["installed"]:
+            self.check.setText("✓ tradução PT instalada")
         else:
-            self.check.setText("escolha a pasta do jogo")
+            self.check.setText("✓ pronto pra instalar")
 
-        if not st["downloaded"]:
-            self.btn.setText("  Baixar")
-            self.btn.setIcon(icons.icon("save"))
-            self.btn.setEnabled(True)
+        icon, text, enabled = "languages", "  Instalar", False
+        if not st["root_ok"]:
+            text, enabled = "  Instalar", False
+        elif dep and not st["dep_ok"]:
+            icon, text, enabled = "shield", f"  Instalar base ({dep.name})", True
+        elif not st["downloaded"]:
+            icon, text, enabled = "save", "  Baixar", True
+        elif st["installed"]:
+            icon, text, enabled = "refresh", "  Reinstalar", True
         else:
-            self.btn.setText("  Reinstalar" if st["installed"] else "  Instalar")
-            self.btn.setIcon(icons.icon("refresh" if st["installed"] else "languages"))
-            self.btn.setEnabled(bool(st["dir_ok"]))
-        self.btn.setToolTip("" if self.btn.isEnabled()
-                            else "Escolha a pasta correta do jogo primeiro.")
+            icon, text, enabled = "languages", "  Instalar", True
+        self.btn.setText(text)
+        self.btn.setIcon(icons.icon(icon))
+        self.btn.setEnabled(enabled and not self.dlg.busy)
+        self.btn.setToolTip("" if enabled else "Aponte a pasta do jogo primeiro.")
         self.dlg.btn_restore.setEnabled(st["installed"])
         self.dlg._card_state = st
 
@@ -166,21 +184,52 @@ class _GameCard(QFrame):
     def _action(self) -> None:
         if self.dlg.busy:
             return
-        st = self.dlg.lib.state(self.game, self.target)
-        if not st["downloaded"]:
+        lib = self.dlg.lib
+        st = lib.state(self.game, self.root)
+        dep = self.game.dependency
+
+        if dep and not st["dep_ok"]:
+            self._install_dependency(dep)
+        elif not st["downloaded"]:
             self.dlg._run_job(
                 "Baixando tradução…",
-                lambda **kw: self.dlg.lib.download(self.game, **kw),
+                lambda **kw: lib.download(self.game, **kw),
                 self.refresh,
                 done_msg="Tradução baixada. Clique em Instalar pra aplicar no jogo.")
         else:
-            if not self.target:
-                return
             self.dlg._run_job(
                 "Instalando…",
-                lambda **kw: self.dlg.lib.install(self.game, self.target, **kw),
+                lambda **kw: lib.install(self.game, self.root, **kw),
                 self.refresh,
                 done_msg="Tradução instalada. Reinicie o jogo pra ver.")
+
+    def _install_dependency(self, dep: "library.Dependency") -> None:
+        if QMessageBox.question(
+            self.dlg, f"Instalar {dep.name}",
+            f"{dep.note}\n\nBaixar o instalador oficial do {dep.name} agora?\n"
+            f"Fonte: {dep.page_url}"
+        ) != QMessageBox.StandardButton.Yes:
+            return
+
+        def after(err_ignored=None) -> None:
+            path = getattr(self.dlg, "_dep_path", None)
+            if path and Path(path).exists():
+                library.Library.run_installer(Path(path))
+                QMessageBox.information(
+                    self.dlg, dep.name,
+                    "O instalador do CPDD abriu. No wizard dele:\n"
+                    "1. aponte a pasta do jogo (ou Auto-detect)\n"
+                    "2. espere o pré-check\n"
+                    "3. Install English\n\n"
+                    "Quando terminar, volte aqui — o botão vira \"Baixar\".")
+            self.refresh()
+
+        def grab(progress_cb=None, **_) -> None:
+            self.dlg._dep_path = str(
+                self.dlg.lib.fetch_dependency_installer(self.game, progress_cb))
+
+        self.dlg._run_job(f"Baixando o instalador do {dep.name}…", grab, after,
+                          done_msg="")
 
 
 class GameTranslateDialog(QDialog):
@@ -294,7 +343,7 @@ class GameTranslateDialog(QDialog):
             "Devolver o arquivo original (inglês) do jogo?"
         ) != QMessageBox.StandardButton.Yes:
             return
-        n = self.lib.restore(card.game, card.target)
+        n = self.lib.restore(card.game, card.root)
         QMessageBox.information(self, "Restaurar",
                                 f"{n} arquivo(s) restaurado(s). Reinicie o jogo."
                                 if n else "Não havia backup pra restaurar.")

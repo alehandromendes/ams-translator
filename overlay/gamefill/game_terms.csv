@@ -1,0 +1,56 @@
+en,pt,notes
+# Termos de jogo: fixam a tradução PT do termo EN (protegidos como marcador,
+# igual às tags) ANTES de mandar pro tradutor. Casa palavra/expressão inteira,
+# ignora maiúsc/minúsc. Linhas começando com # são comentário.
+# Só entram termos que, NESTE jogo, quase sempre têm o sentido de jogo —
+# palavras ambíguas demais (party, staff, charge, block, draw, range) ficam de
+# fora de propósito.
+#
+# --- jargão de RPG/MMO (o Google erra o sentido) ---
+gear,equipamento,(não "engrenagem")
+melee,corpo a corpo,
+ranged,à distância,
+cooldown,recarga,
+cast time,tempo de conjuração,
+channeling,canalização,
+debuff,penalidade,
+DoT,dano contínuo,
+AoE,em área,
+raid,raide,
+dungeon,masmorra,
+boss,chefe,
+loot,espólio,
+quest,missão,
+respawn,ressurgir,
+aggro,ameaça,
+taunt,provocar,
+lifesteal,roubo de vida,
+crit rate,chance de crítico,
+crit damage,dano crítico,
+cast a skill,usar uma habilidade,
+party mode,modo em grupo,
+in a party,em grupo,
+team dungeon,masmorra em equipe,
+# --- Lord of Mysteries: termos consagrados da fandom PT-BR ---
+Beyonder,Beyonder,não traduzir
+Beyonders,Beyonders,
+Beyonder Characteristic,Característica de Beyonder,
+Sequence,Sequência,
+Pathway,Caminho,
+Uniqueness,Unicidade,
+Sefirah,Sefirá,
+Sefirah Castle,Castelo Sefirá,
+Marionette,Marionete,
+Marionettes,Marionetes,
+Nighthawk,Vigia Noturno,
+Nighthawks,Vigias Noturnos,
+Tarot Club,Clube do Tarô,
+Demigod,Semideus,
+acting method,método de atuação,
+Spirit Vision,Visão Espiritual,
+spirituality,espiritualidade,
+spirit body,corpo espiritual,
+mystical space,espaço místico,
+divination,adivinhação,
+Scarlet Relic,Relíquia Escarlate,
+Scarlet Relics,Relíquias Escarlates,

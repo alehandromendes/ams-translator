@@ -1,0 +1,25 @@
+# python
+.venv/
+__pycache__/
+*.pyc
+
+# dados do usuário / runtime
+overlay_config.json
+data/overlay_shots/
+
+# cache de tradução — versionar (trabalho acumulado)
+!data/
+!data/cache/
+!data/cache/overlay_tm.json
+
+# build do executável (PyInstaller)
+build/
+dist/
+*.spec.bak
+
+# editores
+.vscode/
+.idea/
+
+dist_new/
+/gamefill/

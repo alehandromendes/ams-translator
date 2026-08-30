@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "updated": "2026-08-30",
+  "note": "Índice embutido (fallback). O app tenta primeiro o repo tradutor-legendas-traducoes no GitHub.",
+  "games": [
+    {
+      "id": "lord-of-mysteries",
+      "name": "Lord of Mysteries",
+      "source_lang": "en",
+      "target_lang": "pt-BR",
+      "based_on": "CPDD English patch (Lani27) — c7-en-20260821",
+      "note": "Traduz o RuntimeTextGemini (diálogo e texto de runtime, ~126 mil linhas). Nomes de item/skill que vêm do StringDB compilado ficam em inglês.",
+      "default_dirs": [
+        "C:/Jogos/Game/C7/Saved/Mods",
+        "C:/Program Files (x86)/Steam/steamapps/common/Lord of Mysteries/C7/Saved/Mods",
+        "D:/Steam/steamapps/common/Lord of Mysteries/C7/Saved/Mods"
+      ],
+      "requires": [
+        "bootstrap.lua",
+        "lua/mods/cpdd_runtime_fixes/RuntimeTextGemini.lua",
+        "lua/mods/cpdd_runtime_fixes/Init.lua"
+      ],
+      "files": [
+        {
+          "src": "lord-of-mysteries/RuntimeTextGemini.lua",
+          "dest": "lua/mods/cpdd_runtime_fixes/RuntimeTextGemini.lua"
+        }
+      ]
+    }
+  ]
+}

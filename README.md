@@ -1,46 +1,101 @@
 # Tradutor de Legendas
 
-App de desktop (Windows, Python + PySide6) que traduz **legendas de jogos ao vivo** —
-sem tradução oficial, sem chave de API. Feito em cima de *Lord of Mysteries* (诡秘之主),
-mas serve pra qualquer jogo.
+**Traduza legendas e textos de jogos para português — ao vivo, sem tradução oficial e sem chave de API.**
 
-Dois modos:
+Aplicativo de desktop para Windows. Nasceu para *Lord of Mysteries* (诡秘之主), mas
+funciona com qualquer jogo. Duas frentes:
 
-1. **Captura ao vivo** — atalho global (ou `Ctrl+V`) → OCR do chinês → tradução PT →
-   galeria com a legenda **substituída no lugar**, estilo Google Tradutor.
-2. **Tradução de jogos** — baixa e instala traduções de mods do jogo (da biblioteca
-   [`tradutor-legendas-traducoes`](https://github.com/alehandromendes/tradutor-legendas-traducoes)),
-   com backup do original e um clique pra restaurar.
-
-> Licença MIT. Não redistribui conteúdo do jogo — as traduções são geradas por
-> tradução automática sobre os arquivos que o próprio usuário já tem instalados.
-
-## Instalação
-
-- **Usuário:** baixe o instalador em *Releases* (`TradutorDeLegendasSetup.exe`) e siga o
-  assistente. Ou baixe a pasta `Tradutor de Legendas/` do .zip e rode o `.exe`.
-- **Do código:** veja *Setup* abaixo.
+- **Captura ao vivo** — um atalho global (ou `Ctrl+V`) tira um print, faz OCR do texto,
+  traduz e mostra numa galeria com a legenda **substituída no lugar**, no estilo do
+  Google Tradutor.
+- **Tradução de jogos** — baixa e instala pacotes de tradução para mods do jogo,
+  direto de uma [biblioteca no GitHub][lib], sempre com **backup do original** e
+  restauração em um clique.
 
 ---
 
-## Como funciona (captura ao vivo)
+## ⬇️ Download
 
-```
-atalho global (F9 região / F8 tela inteira)  ─ ou ─  Ctrl+V (imagem colada)
-  → captura via mss
-  → fila de um worker em thread separada
-      → OCR chinês (RapidOCR / ONNX, offline)
-      → junta os fragmentos da mesma linha num texto só
-      → tradução CN→PT sem chave (Google clients5 → gtx → MyMemory)
-         + pré-substituição de nomes pelo glossary/*.csv
-      → recompõe a imagem cobrindo a legenda original e escrevendo o PT no lugar
-  → galeria paginada: filmstrip de miniaturas + ◀ Anterior / Próxima ▶ (setas ← →),
-    ordem cronológica, mantém só as últimas 10 (buffer circular)
-```
+| | |
+|---|---|
+| **Instalador (recomendado)** | **[download/TradutorDeLegendasSetup.exe](download/TradutorDeLegendasSetup.exe)** — ou na página de **[Releases][rel]** |
+| **Link direto (sempre a última versão)** | `https://github.com/alehandromendes/tradutor-legendas/releases/latest/download/TradutorDeLegendasSetup.exe` |
+
+Assistente de instalação em PT-BR / EN, cria atalhos no menu Iniciar e na área de
+trabalho. **Windows 10/11 (64 bits). Não precisa de Python.**
+
+> O app solicita elevação (UAC) ao abrir — é necessário para os atalhos globais
+> funcionarem por cima de jogos que rodam como administrador.
 
 ---
 
-## Setup
+## Recursos
+
+- OCR de chinês **offline** (RapidOCR / ONNX) — nada sai da máquina até a tradução
+- Tradução **sem chave de API**, com _fallback_ entre provedores públicos
+- Galeria paginada com miniaturas, navegação por teclado/atalho e auto-avanço inteligente
+- Legenda **recomposta na imagem** por cima do texto original
+- Glossário de nomes próprios (`glossary/*.csv`) aplicado antes de traduzir
+- Painel reverso **PT → 中文** para digitar e traduzir
+- Janela sem moldura, tema escuro, atalhos globais configuráveis (Win32 + hook)
+- **Colar imagem** (`Ctrl+V`) para traduzir qualquer print
+
+---
+
+## Modo 1 — Captura ao vivo
+
+1. **Definir região** — a tela congela; arraste sobre a faixa onde a legenda aparece.
+   Uma faixa baixa e larga deixa o OCR quase instantâneo.
+2. No jogo, a cada fala nova aperte o atalho:
+   - **PgUp** — captura a região definida
+   - **PgDn** — captura a tela inteira
+   - **`Ctrl+V`** — traduz uma imagem da área de transferência
+3. Navegue pela galeria com as **setas ← →**, pelos botões, pela filmstrip, ou pelos
+   atalhos globais de navegação (configuráveis).
+4. **Ver traduzido** alterna com o original. **Copiar** / **Salvar** exportam o resultado.
+
+Todos os atalhos são reconfiguráveis em **Atalhos** (grave qualquer combinação).
+
+---
+
+## Modo 2 — Tradução de jogos
+
+Botão **Tradução de jogos** na barra de ações:
+
+1. O app lê o índice da [biblioteca de traduções][lib] no GitHub.
+2. **Baixar** — traz os arquivos da tradução para `…/TradutorDeLegendas/traducoes/<jogo>/`.
+3. O app **detecta a pasta do jogo** e confere se a estrutura bate com o esperado.
+4. **Instalar** — copia os arquivos para o jogo, guardando o original antes.
+5. **Restaurar original** desfaz a qualquer momento.
+
+Suporte inicial: **Lord of Mysteries**, sobre o
+[CPDD English patch](https://github.com/Lani27/lord-of-mysteries-english-patch)
+(EN → PT-BR). Reinstale após cada atualização do patch.
+
+---
+
+## Configuração — `overlay_config.json`
+
+Criado no primeiro uso, ao lado do executável (ou em `%LOCALAPPDATA%\TradutorDeLegendas\`).
+
+| chave | padrão | função |
+|---|---|---|
+| `hotkeys_region` / `hotkeys_fullscreen` | `["pgup"]` / `["pgdown"]` | atalhos de captura (região / tela inteira) |
+| `nav_prev_hotkeys` / `nav_next_hotkeys` | `["left"]` / `["right"]` | navegar a galeria com o jogo em foco |
+| `region` | `null` | faixa da legenda (definida pela interface) |
+| `monitor` | `1` | monitor usado quando não há região |
+| `source_lang` / `target_lang` | `zh-CN` / `pt` | par de idiomas |
+| `min_ocr_score` | `0.5` | descarta OCR abaixo desse score |
+| `hide_window_on_capture` | `true` | oculta a janela 0,1 s para não capturar a si mesma |
+| `max_pages` | `10` | quantas capturas a galeria mantém |
+| `auto_advance_gap_seconds` | `60` | intervalo mínimo para a galeria pular para a captura nova |
+| `reverse_panel_visible` | `true` | mostra o painel PT → 中文 |
+
+---
+
+## Para desenvolvedores
+
+### Rodar do código
 
 ```bash
 git clone https://github.com/alehandromendes/tradutor-legendas
@@ -48,121 +103,79 @@ cd tradutor-legendas
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
+python -m overlay
 ```
 
-## Rodar
+### Gerar o executável e o instalador
 
 ```bash
-python -m overlay          # ou: python run_overlay.py
-```
-
-Ou **duplo-clique em `Tradutor de Legendas.bat`**.
-
-1. **Definir região** → a tela congela (visível, levemente escurecida, com linhas-guia); arraste sobre a faixa da legenda. **Dica:** uma faixa baixa e larga (proporção > 8:1) faz o OCR pular a etapa de detecção e fica quase instantâneo. Salvo em `overlay_config.json`.
-2. **Atalhos** → 4 grupos, todos globais (funcionam com o jogo em foco):
-   - **Capturar região** (padrão F9) e **Capturar tela inteira** (padrão F8)
-   - **Página anterior** / **Próxima página** — configure aqui p/ navegar as traduções **sem sair do jogo** (as setas ← → do teclado só funcionam com a janela do app em foco).
-   Grave qualquer combinação; vários por grupo; aplica na hora. Se o atalho de região for apertado sem região definida, o app abre a seleção primeiro e captura em seguida.
-3. No jogo, a cada fala nova, aperte o atalho — **ou** copie um print e tecle **Ctrl+V** na janela.
-4. Navegue pelas **setas** nas laterais do visor, pela **filmstrip** à esquerda, pelos botões **Anterior / Próxima** ou pelas **setas do teclado**. Checkbox **Ver traduzido** alterna com o original.
-   - **Auto-avanço inteligente:** se a captura anterior foi há **menos de `auto_advance_gap_seconds` (60 s)**, a galeria **não pula** pra nova (o botão *Próxima (N)* mostra quantas esperam). Se passou ≥ 60 s, vai direto pra nova.
-5. **Copiar** (CN⭾PT) · **Salvar** (PNG em `data/overlay_shots/`).
-6. **Painel PT → 中文** (direita, liga/desliga na toolbar): digite em português → tradução em chinês simplificado (Ctrl+Enter, botão, ou 0,8 s após parar de digitar) + **Copiar 中文**.
-
-## Configuração — `overlay_config.json` (criado no 1º uso)
-
-| chave | padrão | o que faz |
-|-------|--------|-----------|
-| `hotkeys_region` / `hotkeys_fullscreen` | `["f9"]` / `["f8"]` | atalhos globais: captura da região pré-config / da tela inteira |
-| `nav_prev_hotkeys` / `nav_next_hotkeys` | `[]` | atalhos globais p/ navegar a galeria com o jogo em foco (ex.: `["page up"]` / `["page down"]`) |
-| `region` | `null` | região da legenda (setada pela UI) |
-| `monitor` | `1` | monitor usado quando não há região |
-| `source_lang` / `target_lang` | `zh-CN` / `pt` | par de idiomas |
-| `min_ocr_score` | `0.5` | descarta OCR abaixo desse score |
-| `font_path` | Segoe UI Semibold | fonte do texto traduzido |
-| `hide_window_on_capture` | `true` | some com a janela 0,1 s pra não capturar a si mesma |
-| `max_pages` | `10` | quantas capturas a galeria mantém |
-| `auto_advance_gap_seconds` | `60` | intervalo mínimo entre capturas p/ a galeria pular pra nova automaticamente |
-| `reverse_panel_visible` | `true` | mostra o painel PT → 中文 |
-| `reverse_source` / `reverse_target` | `pt` / `zh-CN` | direção do painel de digitação |
-
-## Glossário — `glossary/*.csv`
-
-Termos chineses conhecidos são trocados pela forma PT-BR **antes** de ir pro tradutor,
-então nomes próprios saem certos. Formato: `cn,en,pt_br,category,notes`.
-
-## Gerar o .exe e o instalador
-
-```bash
-build_exe.bat        # -> dist/Tradutor de Legendas/  (~340 MB, PySide6 + onnxruntime + modelos OCR)
+build_exe.bat
+#   -> dist/Tradutor de Legendas/   (~340 MB — PySide6 + onnxruntime + modelos OCR)
 
 powershell -ExecutionPolicy Bypass -File installer\build_installer.ps1
-#   -> installer/Output/TradutorDeLegendasSetup.exe  (assistente Inno Setup)
+#   -> installer/Output/TradutorDeLegendasSetup.exe
 ```
 
-`build_installer.ps1` gera o `.exe` se preciso, instala o Inno Setup (winget/choco) se
-faltar, e compila o assistente. Distribua **só o `TradutorDeLegendasSetup.exe`** — ou a
-pasta `dist/Tradutor de Legendas/` inteira. Não precisa de Python na máquina destino.
+`build_installer.ps1` gera o `.exe` se necessário, instala o Inno Setup (winget/choco)
+se faltar, e compila o assistente.
 
-- `overlay_config.json`, `data/cache/` e `data/overlay_shots/` ficam **ao lado do .exe**.
-- Glossário vai embutido; pra editar depois, ponha uma pasta `glossary/` ao lado do .exe (tem prioridade).
-
-## Traduzir o jogo para PT (botão "Traduzir jogo")
-
-Se o jogo usa um **mod de tradução para inglês** (ex.: CPDD English patch de *Lord of
-Mysteries*), o botão **Traduzir jogo** na barra de ações traduz os textos do mod de
-**EN → PT-BR** com a mesma API, direto nos arquivos do mod:
-
-- Alvo: `C7/Saved/Mods/lua/mods/cpdd_runtime_fixes/RuntimeTextGemini.lua` (mapa
-  `中文 → English` que o patch usa pra todo texto visível — 126 mil linhas).
-- **Salva o original** em `gamefill/backup/` antes de tocar em nada; botão
-  **Restaurar original** volta byte-idêntico.
-- Protege markup (`<InvHighlight>`, `<Mark id=…>`, `%s`, quebras de linha) e fixa
-  termos de jogo ambíguos (`overlay/gamefill/game_terms.csv`: `gear`→equipamento,
-  `Beyonder`, `Sequência`, `dungeon`→masmorra…).
-- **Leva horas** (~7,9 M caracteres). Roda em thread, mostra progresso, dá pra
-  **Parar** e continuar depois (cache em `gamefill/patch_pt_cache.json`).
-- Reinicie o jogo pra ver. Rode de novo depois de cada atualização do patch.
-
-CLI equivalente: `python -m overlay.gamefill.patch_pt [--status|--restore]`
-
-## Preencher o mod de tradução do jogo (`overlay.gamefill`)
-
-> Para o caso do mod de localização **PT** da comunidade (formato `.parts/*.lua`).
-> Se você usa o **English patch**, veja a seção acima.
-
-Lord of Mysteries (诡秘之主) já roda com um **mod de localização da comunidade**
-(`<jogo>/C7/Saved/Mods/localization/`) que traduz ~98% dos textos. As ~500 linhas de
-**diálogo** que sobraram em chinês podem ser preenchidas com o mesmo motor + glossário:
+### Ferramentas de linha de comando
 
 ```bash
-python -m overlay.gamefill --dry-run      # prévia, não grava nada
-python -m overlay.gamefill                # aplica (FECHE O JOGO ANTES)
-python -m overlay.gamefill --restore      # desfaz
+# Gera/atualiza a tradução EN -> PT do CPDD English patch (RuntimeTextGemini.lua + Init.lua)
+python -m overlay.gamefill.patch_pt [--status | --restore | --no-init]
+
+# Preenche as lacunas de um mod de localização PT da comunidade (formato .parts/*.lua)
+python -m overlay.gamefill [--dry-run | --restore]
 ```
 
-Ou **duplo-clique em `Preencher traducao do jogo.bat`**.
+Ambos fazem backup do original e são reexecutáveis (retomam de onde pararam).
 
-- Acha as strings dos módulos de conversa com CJK residual, resolve `{{先生|女士}}` →
-  `{{senhor|senhora}}`, aplica o glossário (nomes) e traduz o resto.
-- Grava um fragmento `.parts/NNNN.lua` de **overlay** que o próprio mod carrega por cima
-  e faz `+1` no `__parts` do índice (índice original salvo em `gamefill/backup/`).
-- Toda linha preenchida ganha o prefixo **`» `** (`--no-mark` desliga) pra você revisar
-  no jogo; as mais incertas ficam **`»? `**. Relatório completo em `gamefill/report.csv`.
-- Re-executável: `state.json` evita re-traduzir o que já foi feito. Rode de novo depois
-  de cada atualização do mod da comunidade (ela sobrescreve nosso overlay).
-- Só mexe em `C7/Saved/Mods/` (pasta do usuário, fora da verificação dos `.pak`) — mesmo
-  mecanismo do mod que já está instalado.
+---
+
+## Como funciona
+
+```
+atalho global (PgUp região / PgDn tela inteira)  ─ ou ─  Ctrl+V
+  → captura (mss)
+  → fila em thread de trabalho
+      → OCR de chinês (RapidOCR / ONNX, offline)
+      → junta os fragmentos de cada linha
+      → tradução CN → PT (Google clients5 → gtx → MyMemory), sem chave
+         + glossário de nomes próprios
+      → recompõe a imagem por cima da legenda original
+  → galeria: filmstrip + navegação + auto-avanço (buffer circular de 10)
+```
+
+A tradução de mods (`overlay/gamefill/`) trabalha sobre os arquivos `.lua` que o mod de
+tradução do jogo já instalou, protegendo a marcação (`<InvHighlight>`, `<Mark id=…>`,
+`%s`, quebras de linha) e fixando termos de jogo ambíguos via `game_terms.csv`
+(`gear` → equipamento, `dungeon` → masmorra, `Beyonder`, `Sequência`…). Só escreve na
+pasta do usuário do jogo (`Saved/Mods/`), fora da verificação de integridade dos `.pak`.
+
+---
 
 ## Limitações
 
-- **Jogo em modo janela / "borderless windowed"** — fullscreen exclusivo dá tela preta na captura. `Ctrl+V` funciona sempre.
-- **Atalho global:** o app registra por dois caminhos (Win32 `RegisterHotKey` + hook). Se não pegar por cima de um jogo que roda como administrador, use o botão **Reabrir como admin**.
-- Se a tecla escolhida já estiver em uso (GeForce Experience, OBS, ShareX usam F-keys), o app avisa — troque em **Atalhos**. O indicador no cabeçalho mostra ativo / sem admin / falhou.
-- Os botões da toolbar e o **Ctrl+V** funcionam sempre (com a janela em foco).
-- Tradução usa endpoints públicos sem chave (clients5 → MyMemory → Lingva → gtx) — podem limitar por IP (`429`); cai pro próximo. Se **todos** falharem, o app mostra o motivo na barra de status e o botão **Retraduzir** fica em destaque (nada é gravado no cache, então o retry funciona). Cache em `data/cache/overlay_tm.json`.
-- Velocidade típica por captura: OCR ~0,2–0,4 s + tradução ~0,3–1,8 s (latência de rede). A barra de status mostra os dois tempos. Legenda repetida = cache, instantâneo.
+- **Fullscreen exclusivo** dá tela preta na captura — use modo janela / *borderless*.
+  `Ctrl+V` funciona sempre.
+- **Atalhos globais** registram por Win32 `RegisterHotKey` + hook. Se um jogo elevado
+  ignorar, o app roda elevado por padrão; o indicador no rodapé mostra o estado.
+- Teclas em uso por outro programa (GeForce Experience, OBS…) são avisadas — troque em
+  **Atalhos**.
+- Tradução por endpoints públicos: podem limitar por IP (`429`); o app cai para o
+  próximo e nada quebra. Traduções ficam em cache.
+- A tradução de mods é **automática** — o original fica sempre salvo para restaurar.
+
+---
 
 ## Stack
 
-Python · PySide6 · mss · RapidOCR (onnxruntime) · Pillow · deep-translator/requests · keyboard · PyInstaller
+Python · PySide6 · mss · RapidOCR (onnxruntime) · Pillow · requests · keyboard · PyInstaller · Inno Setup
+
+## Licença
+
+[MIT](LICENSE) © 2026 Alehandro Mendes. Este projeto não redistribui conteúdo dos jogos.
+
+[lib]: https://github.com/alehandromendes/tradutor-legendas-traducoes
+[rel]: https://github.com/alehandromendes/tradutor-legendas/releases/latest

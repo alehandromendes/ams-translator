@@ -47,9 +47,9 @@ GLOSSARY_DIR = _editable_glossary if (_editable_glossary / "names.csv").exists()
 ICON_PATH = BUNDLE_DIR / "assets" / "icon.ico"
 
 DEFAULTS: dict = {
-    "_v": 2,                         # versão do schema (migrações em load())
-    "hotkeys_region": ["f9"],        # atalho: captura a região pré-configurada
-    "hotkeys_fullscreen": ["f8"],    # atalho: captura a tela inteira
+    "_v": 3,                         # versão do schema (migrações em load())
+    "hotkeys_region": ["pgup"],      # atalho: captura a região pré-configurada
+    "hotkeys_fullscreen": ["pgdown"],  # atalho: captura a tela inteira
     "nav_prev_hotkeys": ["left"],    # atalhos globais: página anterior da galeria
     "nav_next_hotkeys": ["right"],   # atalhos globais: próxima página da galeria
     "region": None,          # {"left", "top", "width", "height"} em coords absolutas
@@ -106,7 +106,16 @@ def load() -> dict:
         for key in ("nav_prev_hotkeys", "nav_next_hotkeys"):
             if not cfg[key]:
                 cfg[key] = list(DEFAULTS[key])
-    cfg["_v"] = 2
+
+    # v3: captura passa a ser PgUp (região) / PgDn (tela inteira). Migra só quem
+    # ainda está nos padrões antigos (F9/F8) — teclas personalizadas ficam.
+    if int(raw.get("_v", 1)) < 3:
+        if cfg["hotkeys_region"] in ([], ["f9"]):
+            cfg["hotkeys_region"] = list(DEFAULTS["hotkeys_region"])
+        if cfg["hotkeys_fullscreen"] in ([], ["f8"]):
+            cfg["hotkeys_fullscreen"] = list(DEFAULTS["hotkeys_fullscreen"])
+
+    cfg["_v"] = 3
     return cfg
 
 

@@ -39,11 +39,20 @@ class TFile:
         return Path(self.src).name
 
 
+_LANG_LABEL = {"zh": "中文", "zh-cn": "中文", "zh-hans": "中文",
+               "en": "EN", "pt-br": "PT-BR", "pt": "PT"}
+
+
+def _lbl(code: str) -> str:
+    return _LANG_LABEL.get((code or "").lower(), (code or "").upper())
+
+
 @dataclass
 class Game:
     id: str
     name: str
-    source_lang: str = "en"
+    source_lang: str = "zh-CN"     # idioma original do jogo
+    via_lang: str = ""             # idioma-ponte (ex.: EN, do patch em inglês)
     target_lang: str = "pt-BR"
     based_on: str = ""
     note: str = ""
@@ -51,13 +60,22 @@ class Game:
     requires: list[str] = field(default_factory=list)
     files: list[TFile] = field(default_factory=list)
 
+    @property
+    def lang_path(self) -> str:
+        parts = [_lbl(self.source_lang)]
+        if self.via_lang:
+            parts.append(_lbl(self.via_lang))
+        parts.append(_lbl(self.target_lang))
+        return " → ".join(parts)
+
 
 def _parse(data: dict) -> list[Game]:
     games: list[Game] = []
     for g in data.get("games", []):
         games.append(Game(
             id=g["id"], name=g["name"],
-            source_lang=g.get("source_lang", "en"),
+            source_lang=g.get("source_lang", "zh-CN"),
+            via_lang=g.get("via_lang", g.get("via", "")),
             target_lang=g.get("target_lang", "pt-BR"),
             based_on=g.get("based_on", ""), note=g.get("note", ""),
             default_dirs=list(g.get("default_dirs", [])),

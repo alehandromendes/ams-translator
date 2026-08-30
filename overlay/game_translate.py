@@ -75,7 +75,7 @@ class _GameCard(QFrame):
         left.setSpacing(2)
         title = QLabel(f"{game.name}")
         title.setObjectName("RowTitle")
-        sub = QLabel(f"{game.source_lang.upper()} → {game.target_lang}"
+        sub = QLabel(game.lang_path
                      + (f"  ·  {game.based_on}" if game.based_on else ""))
         sub.setObjectName("RowSub")
         left.addWidget(title)
@@ -171,14 +171,16 @@ class _GameCard(QFrame):
             self.dlg._run_job(
                 "Baixando tradução…",
                 lambda **kw: self.dlg.lib.download(self.game, **kw),
-                self.refresh)
+                self.refresh,
+                done_msg="Tradução baixada. Clique em Instalar pra aplicar no jogo.")
         else:
             if not self.target:
                 return
             self.dlg._run_job(
                 "Instalando…",
                 lambda **kw: self.dlg.lib.install(self.game, self.target, **kw),
-                self.refresh)
+                self.refresh,
+                done_msg="Tradução instalada. Reinicie o jogo pra ver.")
 
 
 class GameTranslateDialog(QDialog):
@@ -252,7 +254,7 @@ class GameTranslateDialog(QDialog):
         self.cards.addStretch(1)
 
     # ------------------------------------------------------------------
-    def _run_job(self, label: str, fn, on_done) -> None:
+    def _run_job(self, label: str, fn, on_done, done_msg: str = "Pronto.") -> None:
         self.busy = True
         self.status.setText(label)
         self.bar.show()
@@ -270,7 +272,7 @@ class GameTranslateDialog(QDialog):
                 self.status.setText("")
                 QMessageBox.warning(self, "Erro", err)
             else:
-                self.status.setText("Pronto. Reinicie o jogo pra ver.")
+                self.status.setText(done_msg)
             on_done()
 
         self._job.done.connect(finish)

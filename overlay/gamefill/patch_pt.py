@@ -1,6 +1,7 @@
 """
-@description Traduz EN→PT o `RuntimeTextGemini.lua` do CPDD English patch de Lord of
-             Mysteries (mapa 中文→English usado pelo Init.lua em `lookupGeminiText`).
+@description Fecha a ponte 中文 → EN → PT-BR de Lord of Mysteries: o jogo é em chinês,
+             o CPDD English patch já traduz 中文→English (`RuntimeTextGemini.lua` +
+             tabelas do `Init.lua`), e este módulo traduz esse inglês → PT-BR.
              Troca os valores para português, protegendo markup (`<InvHighlight>`,
              `<Mark id>`, `%s`, quebras de linha) e fixando termos de jogo ambíguos.
              Salva o original antes e permite restaurar.

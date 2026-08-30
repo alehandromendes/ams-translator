@@ -6,10 +6,11 @@
     {
       "id": "lord-of-mysteries",
       "name": "Lord of Mysteries",
-      "source_lang": "en",
+      "source_lang": "zh-CN",
+      "via_lang": "en",
       "target_lang": "pt-BR",
-      "based_on": "CPDD English patch (Lani27) — c7-en-20260821",
-      "note": "Traduz o RuntimeTextGemini (diálogo e texto de runtime, ~126 mil linhas). Nomes de item/skill que vêm do StringDB compilado ficam em inglês.",
+      "based_on": "ponte pelo CPDD English patch (Lani27) — c7-en-20260821",
+      "note": "O jogo é em chinês. O CPDD English patch já traduz 中文 → inglês; este pacote traduz o inglês do patch → PT-BR, formando a ponte 中文 → EN → PT-BR. Cobre o RuntimeTextGemini + Init.lua (diálogo e texto de runtime). Nomes de item/skill que vêm do StringDB compilado ficam em inglês.",
       "default_dirs": [
         "C:/Jogos/Game/C7/Saved/Mods",
         "C:/Program Files (x86)/Steam/steamapps/common/Lord of Mysteries/C7/Saved/Mods",

@@ -69,9 +69,11 @@ Botão **Tradução de jogos** na barra de ações:
 4. **Instalar** — copia os arquivos para o jogo, guardando o original antes.
 5. **Restaurar original** desfaz a qualquer momento.
 
-Suporte inicial: **Lord of Mysteries**, sobre o
-[CPDD English patch](https://github.com/Lani27/lord-of-mysteries-english-patch)
-(EN → PT-BR). Reinstale após cada atualização do patch.
+Suporte inicial: **Lord of Mysteries** — tradução em ponte **中文 → EN → PT-BR**. O jogo
+é em chinês; o [CPDD English patch](https://github.com/Lani27/lord-of-mysteries-english-patch)
+já faz 中文 → inglês, e este pacote traduz o inglês do patch → PT-BR (o inglês serve de
+pivô: nomes já vêm anglicizados e a tradução sai melhor que CN→PT direto). Reinstale
+após cada atualização do patch.
 
 ---
 
@@ -123,7 +125,8 @@ se faltar, e compila o assistente.
 ### Ferramentas de linha de comando
 
 ```bash
-# Gera/atualiza a tradução EN -> PT do CPDD English patch (RuntimeTextGemini.lua + Init.lua)
+# Gera/atualiza a tradução do CPDD English patch (RuntimeTextGemini.lua + Init.lua):
+# traduz o inglês do patch -> PT-BR, fechando a ponte 中文 -> EN -> PT-BR
 python -m overlay.gamefill.patch_pt [--status | --restore | --no-init]
 
 # Preenche as lacunas de um mod de localização PT da comunidade (formato .parts/*.lua)

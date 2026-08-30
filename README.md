@@ -91,14 +91,18 @@ Ou **duplo-clique em `Tradutor de Legendas.bat`**.
 Termos chineses conhecidos são trocados pela forma PT-BR **antes** de ir pro tradutor,
 então nomes próprios saem certos. Formato: `cn,en,pt_br,category,notes`.
 
-## Gerar o .exe
+## Gerar o .exe e o instalador
 
 ```bash
-build_exe.bat        # ou: .venv\Scripts\python -m PyInstaller --noconfirm --clean overlay.spec
+build_exe.bat        # -> dist/Tradutor de Legendas/  (~340 MB, PySide6 + onnxruntime + modelos OCR)
+
+powershell -ExecutionPolicy Bypass -File installer\build_installer.ps1
+#   -> installer/Output/TradutorDeLegendasSetup.exe  (assistente Inno Setup)
 ```
 
-Sai em **`dist/Tradutor de Legendas/`** (~340 MB — PySide6 + OpenCV + onnxruntime + modelos OCR).
-Distribua a **pasta inteira**; não precisa de Python na máquina destino.
+`build_installer.ps1` gera o `.exe` se preciso, instala o Inno Setup (winget/choco) se
+faltar, e compila o assistente. Distribua **só o `TradutorDeLegendasSetup.exe`** — ou a
+pasta `dist/Tradutor de Legendas/` inteira. Não precisa de Python na máquina destino.
 
 - `overlay_config.json`, `data/cache/` e `data/overlay_shots/` ficam **ao lado do .exe**.
 - Glossário vai embutido; pra editar depois, ponha uma pasta `glossary/` ao lado do .exe (tem prioridade).

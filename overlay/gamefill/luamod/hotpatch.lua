@@ -9,54 +9,88 @@ H.resweep_on = true
 local nmod = 0
 for _ in pairs(package.loaded) do nmod = nmod + 1 end
 
--- ===== PASSE DE LOGIN: roda TODA vez ate estabilizar. Varre package.loaded
--- INTEIRO atras dos textos exatos da tela de login/selecao de personagem. =====
+-- ===== PASSE DE LOGIN + SEED DO CPDD =====
+-- CURADO: so frases longas e inequivocas da tela inicial/selecao de personagem.
+-- Nada de palavra generica ("Loading"/"Login"/"Server"/"Confirm") que sirva de
+-- enum/estado -- essas quebravam a troca de servidor e as descricoes.
 do
+  local ENTER = "Entre no mundo dos Beyounders"
   local LOGIN_OVR = {
-    ["Select Character"] = "Selecionar Personagem", ["Character Select"] = "Selecionar Personagem",
-    ["Enter World"] = "Entre no mundo dos Beyounders",
-    ["Enter the World"] = "Entre no mundo dos Beyounders",
-    ["Enter the Extraordinary World"] = "Entre no mundo dos Beyounders",
-    ["Enter Extraordinary World"] = "Entre no mundo dos Beyounders",
-    ["Entre no mundo extraordinário"] = "Entre no mundo dos Beyounders",
-    ["Entre no mundo extraordinario"] = "Entre no mundo dos Beyounders",
-    ["Entrar no mundo extraordinário"] = "Entre no mundo dos Beyounders",
-    ["Entrar no mundo extraordinario"] = "Entre no mundo dos Beyounders",
-    ["\232\191\155\229\133\165\233\157\158\229\135\161\228\184\150\231\149\140"] = "Entre no mundo dos Beyounders",
-    ["Create Character"] = "Criar Personagem", ["Delete Character"] = "Excluir Personagem",
-    ["Create Role"] = "Criar Personagem", ["Delete Role"] = "Excluir Personagem",
-    ["Connect to Server"] = "Conectando ao servidor", ["Connecting"] = "Conectando",
-    ["Connecting..."] = "Conectando...", ["Reconnecting"] = "Reconectando",
-    ["Reconnecting..."] = "Reconectando...", ["Loading"] = "Carregando",
-    ["Loading..."] = "Carregando...", ["Verifying resource files"] = "Verificando arquivos",
-    ["Music"] = "Musica", ["Repair"] = "Reparar", ["Feedback"] = "Feedback",
-    ["Login"] = "Entrar", ["Log in"] = "Entrar", ["Exit"] = "Sair",
-    ["Announcement"] = "Aviso", ["Server"] = "Servidor", ["Server List"] = "Lista de Servidores",
-    ["Start Game"] = "Iniciar Jogo", ["Confirm"] = "Confirmar", ["Cancel"] = "Cancelar",
+    ["Enter the Extraordinary World"] = ENTER,
+    ["Enter Extraordinary World"] = ENTER,
+    ["Enter the World"] = ENTER,
+    ["Enter World"] = ENTER,
+    ["Entre no mundo extraordinário"] = ENTER,
+    ["Entre no mundo extraordinario"] = ENTER,
+    ["Entrar no mundo extraordinário"] = ENTER,
+    ["Entrar no mundo extraordinario"] = ENTER,
+    ["\232\191\155\229\133\165\233\157\158\229\135\161\228\184\150\231\149\140"] = ENTER,
+    ["Select Character"] = "Selecionar Personagem",
+    ["Character Select"] = "Selecionar Personagem",
+    ["Choose Character"] = "Selecionar Personagem",
+    ["Choose Your Character"] = "Selecione seu Personagem",
+    ["\233\128\137\230\139\169\232\167\146\232\137\178"] = "Selecionar Personagem",
   }
-  local hit = _G.__login_hit or 0
-  local seen0 = {}
-  local function lw(t, d)
-    if type(t) ~= "table" or seen0[t] or d > 8 then return end
-    seen0[t] = true
+  -- 1) SEED nas tabelas de override do proprio CPDD (ele reaplica o texto num
+  --    timer de widget -- lutar contra isso via sweep nao segura). Best-effort.
+  if not H.cpdd_seeded then
     pcall(function()
-      for k, v in pairs(t) do
-        local ks = tostring(k)
-        if ks ~= "class" and ks:sub(1, 2) ~= "__" then
-          if type(v) == "string" then
-            local p = LOGIN_OVR[v]
-            if p and p ~= v then t[k] = p; hit = hit + 1 end
-          elseif type(v) == "table" then lw(v, d + 1) end
+      local cpdd = package.loaded["mods.cpdd_runtime_fixes.Init"]
+        or package.loaded["cpdd_runtime_fixes.Init"]
+      local fn = type(cpdd) == "table" and cpdd.RepairLiveText
+      if not (fn and type(debug) == "table" and debug.getupvalue) then return end
+      local ovr, cache
+      for i = 1, 90 do
+        local n, v = debug.getupvalue(fn, i)
+        if not n then break end
+        if n == "visibleTextExactOverrides" and type(v) == "table" then ovr = v end
+        if n == "translateVisibleText" and type(v) == "function" then
+          for j = 1, 50 do
+            local n2, v2 = debug.getupvalue(v, j)
+            if not n2 then break end
+            if n2 == "visibleTextCache" and type(v2) == "table" then cache = v2 end
+            if n2 == "visibleTextExactOverrides" and type(v2) == "table" and not ovr then ovr = v2 end
+          end
         end
       end
+      if ovr then
+        for k, val in pairs(LOGIN_OVR) do ovr[k] = val end
+        H.cpdd_seeded = true
+      end
+      if cache then for k, val in pairs(LOGIN_OVR) do cache[k] = val end end
     end)
+    rep["hp_cpdd_seed"] = H.cpdd_seeded and "ok" or "n/d"
   end
-  for _, mod in pairs(package.loaded) do
-    if type(mod) == "table" then pcall(lw, mod, 0) end
+  -- 2) passe direto nas tabelas Lua, so ate estabilizar (4 ticks sem novo hit).
+  if not H.login_stable then
+    local hit = _G.__login_hit or 0
+    local before = hit
+    local seen0 = {}
+    local function lw(t, d)
+      if type(t) ~= "table" or seen0[t] or d > 6 then return end
+      seen0[t] = true
+      pcall(function()
+        for k, v in pairs(t) do
+          local ks = tostring(k)
+          if ks ~= "class" and ks:sub(1, 2) ~= "__" then
+            if type(v) == "string" then
+              local p = LOGIN_OVR[v]
+              -- guarda anti-enum: nao troca se a string tambem e chave da tabela
+              if p and p ~= v and rawget(t, v) == nil then t[k] = p; hit = hit + 1 end
+            elseif type(v) == "table" then lw(v, d + 1) end
+          end
+        end
+      end)
+    end
+    for _, mod in pairs(package.loaded) do
+      if type(mod) == "table" then pcall(lw, mod, 0) end
+    end
+    if type(_G.Game) == "table" then pcall(lw, _G.Game, 0) end
+    _G.__login_hit = hit
+    H.login_calm = (hit == before) and ((H.login_calm or 0) + 1) or 0
+    if H.login_calm >= 4 then H.login_stable = true end
+    rep["hp_login"] = "login hits=" .. hit .. " calm=" .. tostring(H.login_calm)
   end
-  if type(_G.Game) == "table" then pcall(lw, _G.Game, 0) end
-  _G.__login_hit = hit
-  rep["hp_login"] = "login hits=" .. hit .. " (nmod=" .. nmod .. ")"
 end
 
 if nmod < 180 then rep["hp"] = "carregando (" .. nmod .. ")"; return "wait" end

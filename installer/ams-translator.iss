@@ -1,13 +1,13 @@
-; Assistente de instalação do Tradutor de Legendas (Inno Setup 6).
+; Assistente de instalação do AMS Translator (Inno Setup 6).
 ; Compilar: installer\build_installer.ps1  (ou abrir este .iss no Inno Setup Compiler)
-; Requer a pasta ..\dist\Tradutor de Legendas\  (gere com build_exe.bat).
+; Requer a pasta ..\dist\AMS Translator\  (gere com build_exe.bat).
 
-#define AppName "Tradutor de Legendas"
-#define AppVersion "1.1.1"
+#define AppName "AMS Translator"
+#define AppVersion "1.2.0"
 #define AppPublisher "Alehandro Mendes"
-#define AppExe "Tradutor de Legendas.exe"
-#define AppUrl "https://github.com/alehandromendes/tradutor-legendas"
-#define DistDir "..\dist\Tradutor de Legendas"
+#define AppExe "AMS Translator.exe"
+#define AppUrl "https://github.com/alehandromendes/ams-translator"
+#define DistDir "..\dist\AMS Translator"
 
 [Setup]
 AppId={{B6F3B6A2-7B2E-4E1C-9E0C-7A1D2C3D4E5F}
@@ -21,7 +21,7 @@ DefaultGroupName={#AppName}
 DisableProgramGroupPage=yes
 LicenseFile=..\LICENSE
 OutputDir=Output
-OutputBaseFilename=TradutorDeLegendasSetup
+OutputBaseFilename=AMSTranslatorSetup
 SetupIconFile=..\assets\icon.ico
 UninstallDisplayIcon={app}\{#AppExe}
 WizardStyle=modern
@@ -52,5 +52,5 @@ Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExe}"; Tasks: desktopico
 Filename: "{app}\{#AppExe}"; Description: "{cm:LaunchProgram,{#AppName}}"; Flags: nowait postinstall skipifsilent runascurrentuser
 
 [UninstallDelete]
-; dados do usuário ficam em %LOCALAPPDATA%\TradutorDeLegendas e NÃO são removidos.
+; dados do usuário ficam em %LOCALAPPDATA%\AMS Translator e NÃO são removidos.
 Type: filesandordirs; Name: "{app}\_internal"

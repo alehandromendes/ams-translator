@@ -271,7 +271,7 @@ class Gallery(FramelessMixin, QMainWindow):
         self._hotkey_state = "—"
         self._film_guard = False
 
-        self.setWindowTitle("Tradutor de Legendas")
+        self.setWindowTitle("AMS Translator")
         self.resize(1180, 820)
         self.setMinimumSize(960, 580)
         self.setWindowFlag(Qt.FramelessWindowHint, True)
@@ -363,7 +363,7 @@ class Gallery(FramelessMixin, QMainWindow):
                 logo.setPixmap(icons.pixmap("languages", 18, "#4f8cff"))
         except Exception:  # noqa: BLE001
             logo.setPixmap(icons.pixmap("languages", 18, "#4f8cff"))
-        name = QLabel("Tradutor de Legendas")
+        name = QLabel("AMS Translator")
         name.setObjectName("TitleName")
         lay.addWidget(logo)
         lay.addSpacing(8)
@@ -1095,7 +1095,7 @@ def main() -> None:
         Qt.HighDpiScaleFactorRoundingPolicy.PassThrough
     )
     app = QApplication(sys.argv)
-    app.setApplicationName("Tradutor de Legendas")
+    app.setApplicationName("AMS Translator")
     app.setStyleSheet(style.APP_QSS)
     if config.ICON_PATH.exists():
         app.setWindowIcon(QIcon(str(config.ICON_PATH)))

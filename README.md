@@ -1,4 +1,4 @@
-# Tradutor de Legendas
+# AMS Translator
 
 **Traduza legendas e textos de jogos para português — ao vivo, sem tradução oficial e sem chave de API.**
 
@@ -16,11 +16,11 @@ funciona com qualquer jogo. Duas frentes:
 
 ## ⬇️ Download
 
-### 👉 [**Baixar TradutorDeLegendasSetup.exe**](https://github.com/alehandromendes/tradutor-legendas/raw/main/download/TradutorDeLegendasSetup.exe)
+### 👉 [**Baixar AMSTranslatorSetup.exe**](https://github.com/alehandromendes/ams-translator/raw/main/download/AMSTranslatorSetup.exe)
 
 Também disponível na pasta [`download/`](download/) do repositório e na página de
 **[Releases][rel]**. Link fixo para a última versão:
-`.../releases/latest/download/TradutorDeLegendasSetup.exe`
+`.../releases/latest/download/AMSTranslatorSetup.exe`
 
 Assistente de instalação em PT-BR / EN, cria atalhos no menu Iniciar e na área de
 trabalho. **Windows 10/11 (64 bits). Não precisa de Python.**
@@ -87,7 +87,7 @@ Se o CPDD atualizar, basta reabri-lo pelo wizard; a tradução PT continua funci
 
 ## Configuração — `overlay_config.json`
 
-Criado no primeiro uso, ao lado do executável (ou em `%LOCALAPPDATA%\TradutorDeLegendas\`).
+Criado no primeiro uso, ao lado do executável (ou em `%LOCALAPPDATA%\AMS Translator\`).
 
 | chave | padrão | função |
 |---|---|---|
@@ -109,8 +109,8 @@ Criado no primeiro uso, ao lado do executável (ou em `%LOCALAPPDATA%\TradutorDe
 ### Rodar do código
 
 ```bash
-git clone https://github.com/alehandromendes/tradutor-legendas
-cd tradutor-legendas
+git clone https://github.com/alehandromendes/ams-translator
+cd ams-translator
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
@@ -121,10 +121,10 @@ python -m overlay
 
 ```bash
 build_exe.bat
-#   -> dist/Tradutor de Legendas/   (~340 MB — PySide6 + onnxruntime + modelos OCR)
+#   -> dist/AMS Translator/   (~340 MB — PySide6 + onnxruntime + modelos OCR)
 
 powershell -ExecutionPolicy Bypass -File installer\build_installer.ps1
-#   -> installer/Output/TradutorDeLegendasSetup.exe
+#   -> installer/Output/AMSTranslatorSetup.exe
 ```
 
 `build_installer.ps1` gera o `.exe` se necessário, instala o Inno Setup (winget/choco)
@@ -212,4 +212,4 @@ original é salvo antes de instalar** e restaurado em um clique.
 [MIT](LICENSE) © 2026 Alehandro Mendes. Este projeto não redistribui conteúdo dos jogos.
 
 [lib]: https://github.com/alehandromendes/tradutor-legendas-traducoes
-[rel]: https://github.com/alehandromendes/tradutor-legendas/releases/latest
+[rel]: https://github.com/alehandromendes/ams-translator/releases/latest

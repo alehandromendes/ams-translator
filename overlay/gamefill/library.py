@@ -313,8 +313,9 @@ class Library:
         return n
 
     # ---- estado combinado (pra UI) ---------------------------
-    def state(self, g: Game, root: Path | None = None) -> dict:
-        r = Path(root) if root else self.find_game_root(g)
+    def state(self, g: Game, root: Path | None = None,
+              autodetect: bool = True) -> dict:
+        r = Path(root) if root else (self.find_game_root(g) if autodetect else None)
         dep_ok = self.dependency_ok(g, r)
         mod_present = bool(r) and (
             (r / "Saved/Mods/lua/cpdd_user_settings.lua").exists()

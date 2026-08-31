@@ -1,5 +1,5 @@
 """
-@description Gera assets/icon.ico e assets/logo.png do Tradutor de Legendas.
+@description Gera assets/icon.ico e assets/logo.png do AMS Translator.
 @connects icon.ico é usado por overlay.spec (build do .exe) e overlay.gallery (setWindowIcon)
 """
 from __future__ import annotations

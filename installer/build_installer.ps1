@@ -1,10 +1,10 @@
-# Gera o instalador (TradutorDeLegendasSetup.exe) a partir de dist\Tradutor de Legendas\.
+# Gera o instalador (AMSTranslatorSetup.exe) a partir de dist\AMS Translator\.
 # Uso:  powershell -ExecutionPolicy Bypass -File installer\build_installer.ps1
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root
 
-$dist = Join-Path $root "dist\Tradutor de Legendas\Tradutor de Legendas.exe"
+$dist = Join-Path $root "dist\AMS Translator\AMS Translator.exe"
 if (-not (Test-Path $dist)) {
     Write-Host "dist\ nao encontrada. Gerando o executavel primeiro..." -ForegroundColor Yellow
     & "$root\build_exe.bat"
@@ -35,8 +35,8 @@ if (-not $iscc) {
 }
 
 Write-Host "Compilando com $iscc ..." -ForegroundColor Cyan
-& $iscc "$PSScriptRoot\tradutor-legendas.iss"
+& $iscc "$PSScriptRoot\ams-translator.iss"
 if ($LASTEXITCODE -ne 0) { throw "ISCC falhou (exit $LASTEXITCODE)." }
 
-$out = Join-Path $PSScriptRoot "Output\TradutorDeLegendasSetup.exe"
+$out = Join-Path $PSScriptRoot "Output\AMSTranslatorSetup.exe"
 Write-Host "`nPronto: $out" -ForegroundColor Green

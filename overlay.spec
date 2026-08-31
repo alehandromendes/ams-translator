@@ -1,7 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 """
-@description Build do tradutor de legendas ao vivo num executável Windows.
-@connects  pyinstaller overlay.spec   (gera dist/Tradutor de Legendas/)
+@description Build do AMS Translator (tradução ao vivo) num executável Windows.
+@connects  pyinstaller overlay.spec   (gera dist/AMS Translator/)
 """
 import certifi
 from pathlib import Path
@@ -60,7 +60,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name="Tradutor de Legendas",
+    name="AMS Translator",
     console=False,
     disable_windowed_traceback=False,
     icon="assets/icon.ico",
@@ -74,5 +74,5 @@ coll = COLLECT(
     exe,
     a.binaries,
     a.datas,
-    name="Tradutor de Legendas",
+    name="AMS Translator",
 )

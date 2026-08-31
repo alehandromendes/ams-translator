@@ -1,5 +1,5 @@
 """
-@description Configuração e persistência das settings do tradutor de legendas ao vivo.
+@description Configuração e persistência das settings do AMS Translator (tradução ao vivo).
 @connects lido por overlay.gallery, overlay.compositor, overlay.worker
 """
 from __future__ import annotations
@@ -20,13 +20,29 @@ FROZEN = getattr(sys, "frozen", False)
 
 if FROZEN:
     # .exe do PyInstaller: recursos empacotados em sys._MEIPASS; dados graváveis
-    # em %LOCALAPPDATA%\TradutorDeLegendas (NÃO ao lado do exe — senão o app
+    # em %LOCALAPPDATA%\AMS Translator (NÃO ao lado do exe — senão o app
     # trava a pasta e impede recompilar/atualizar).
     BUNDLE_DIR = Path(getattr(sys, "_MEIPASS", Path(sys.executable).resolve().parent))
     _base = os.environ.get("LOCALAPPDATA") or os.path.expanduser("~")
-    DATA_DIR = Path(_base) / "TradutorDeLegendas"
+    DATA_DIR = Path(_base) / "AMS Translator"
+    _legacy = Path(_base) / "TradutorDeLegendas"
     try:
         DATA_DIR.mkdir(parents=True, exist_ok=True)
+        # migração do nome antigo (Tradutor de Legendas) — copia 1x o que existir
+        if _legacy.is_dir() and not (DATA_DIR / ".migrated").exists():
+            import shutil
+            for item in _legacy.iterdir():
+                dst = DATA_DIR / item.name
+                if dst.exists():
+                    continue
+                try:
+                    if item.is_dir():
+                        shutil.copytree(item, dst)
+                    else:
+                        shutil.copy2(item, dst)
+                except Exception:  # noqa: BLE001
+                    pass
+            (DATA_DIR / ".migrated").write_text("from TradutorDeLegendas\n", "utf-8")
     except Exception:  # noqa: BLE001
         DATA_DIR = Path(sys.executable).resolve().parent
 else:

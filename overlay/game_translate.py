@@ -100,7 +100,7 @@ class _GameCard(QFrame):
         row = QHBoxLayout()
         row.setSpacing(6)
         self.path = QLineEdit()
-        self.path.setPlaceholderText("pasta do jogo (…\\Game\\C7)")
+        self.path.setPlaceholderText("ex.: C:\\Jogos\\Game\\C7")
         self.path.setReadOnly(True)
         b_browse = QPushButton("Procurar")
         b_browse.clicked.connect(self._browse)
@@ -113,21 +113,11 @@ class _GameCard(QFrame):
         self.check.setWordWrap(True)
         outer.addWidget(self.check)
 
-        self._use_default(initial=True)
-
-    # ------------------------------------------------------------------
-    def _use_default(self, initial: bool = False) -> None:
-        r = self.dlg.lib.find_game_root(self.game)
-        if r:
-            self.root = r
-            self.path.setText(str(r))
-        elif not initial:
-            QMessageBox.information(
-                self, "Pasta padrão",
-                "Não achei a pasta do jogo. Use 'Procurar' e aponte a pasta que "
-                "termina em \\Game\\C7.")
+        # começa em branco de propósito: o usuário TEM que apontar a pasta C7
+        # (é o que libera o botão Instalar).
         self.refresh()
 
+    # ------------------------------------------------------------------
     def _browse(self) -> None:
         d = QFileDialog.getExistingDirectory(
             self, "Pasta do jogo — a que termina em \\Game\\C7",
@@ -146,12 +136,13 @@ class _GameCard(QFrame):
 
     # ------------------------------------------------------------------
     def refresh(self) -> None:
-        st = self.dlg.lib.state(self.game, self.root)
+        # autodetect=False: só considera a pasta que o usuário escolheu na mão.
+        st = self.dlg.lib.state(self.game, self.root, autodetect=False)
         self.root = Path(st["root"]) if st["root"] else self.root
         dep = self.game.dependency
 
         if not st["root_ok"]:
-            self.check.setText("escolha a pasta do jogo (…\\Game\\C7)")
+            self.check.setText("escolha a pasta do jogo (…\\Game\\C7) em Procurar")
         elif dep and not st["dep_ok"]:
             self.check.setText(f"✗ falta a base: {dep.name} não está instalado")
         elif st["installed"]:
@@ -182,9 +173,14 @@ class _GameCard(QFrame):
         if self.dlg.busy:
             return
         lib = self.dlg.lib
-        st = lib.state(self.game, self.root)
+        st = lib.state(self.game, self.root, autodetect=False)
         dep = self.game.dependency
 
+        if not st["root_ok"]:
+            QMessageBox.information(self, "Pasta do jogo",
+                                   "Clique em Procurar e aponte a pasta que termina "
+                                   "em \\Game\\C7.")
+            return
         if dep and not st["dep_ok"]:
             self._install_dependency(dep)
         elif not st["downloaded"]:

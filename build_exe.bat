@@ -1,5 +1,5 @@
 @echo off
-REM Gera o executavel do Tradutor de Legendas em dist\Tradutor de Legendas\
+REM Gera o executavel do AMS Translator em dist\AMS Translator\
 cd /d "%~dp0"
 
 if not exist ".venv\Scripts\python.exe" (
@@ -10,12 +10,12 @@ if not exist ".venv\Scripts\python.exe" (
     exit /b 1
 )
 
-taskkill /IM "Tradutor de Legendas.exe" /F >nul 2>&1
+taskkill /IM "AMS Translator.exe" /F >nul 2>&1
 timeout /t 1 /nobreak >nul
-tasklist /FI "IMAGENAME eq Tradutor de Legendas.exe" 2>nul | find /I "Tradutor de Legendas.exe" >nul
+tasklist /FI "IMAGENAME eq AMS Translator.exe" 2>nul | find /I "AMS Translator.exe" >nul
 if not errorlevel 1 (
     echo.
-    echo  *** FECHE a janela do "Tradutor de Legendas" antes de compilar ***
+    echo  *** FECHE a janela do "AMS Translator" antes de compilar ***
     echo  Ela esta aberta e trava os arquivos da pasta dist\.
     echo  Se nao fechar pelo X, use o Gerenciador de Tarefas.
     pause
@@ -38,7 +38,7 @@ if errorlevel 1 (
 
 echo.
 echo ================================================================
-echo  Pronto: dist\Tradutor de Legendas\Tradutor de Legendas.exe
-echo  Distribua a PASTA inteira "dist\Tradutor de Legendas".
+echo  Pronto: dist\AMS Translator\AMS Translator.exe
+echo  Distribua a PASTA inteira "dist\AMS Translator".
 echo ================================================================
 pause

@@ -93,7 +93,7 @@ def main() -> int:
         print("!! nao achei o CPDD")
         return 2
     game = md / P.RUNTIME_REL
-    src = Path.home() / "AppData/Local/TradutorDeLegendas/traducoes/Lord of Mysteries/RuntimeTextGemini.lua"
+    src = Path.home() / "AppData/Local/AMS Translator/traducoes/Lord of Mysteries/RuntimeTextGemini.lua"
     total = 0
     for f in (game, src):
         if f.exists():

@@ -112,7 +112,13 @@ local OVR = {
   ["Beyonder"] = "Beyonder", ["点击输入"] = "Clique para digitar",
   ["Visual Guide:"] = "Guia Visual:",
   ["Aumentar a favorabilidade"] = "Aumentar vinculo",
-  ["Attack"] = "Ataque", ["Conquest"] = "Conquista", ["Factions"] = "Faccoes", ["Faction"] = "Faccao",
+  ["Attack"] = "Ataque",
+  ["Recommended Builds"] = "Builds Recomendadas", ["My Builds"] = "Minhas Builds",
+  ["Training Dummy"] = "Boneco de Treino", ["One-Click Assist"] = "Auxilio Rapido",
+  ["One-Click Upgrade"] = "Melhoria Rapida", ["Equip Skill"] = "Equipar", ["Equipar Habilidade"] = "Equipar",
+  ["Normal Skill"] = "Habilidade Comum", ["Special Skill"] = "Habilidade Especial",
+  ["Roleplay Skill"] = "Habilidade de Interpretacao", ["Finisher Skill"] = "Finalizadora",
+  ["Conquest"] = "Conquista", ["Factions"] = "Faccoes", ["Faction"] = "Faccao",
   ["Antigonus Notebook"] = "Caderno Antigonus", ["Caderno Antigono"] = "Caderno Antigonus",
   ["Caderno Antigonus"] = "Caderno Antigonus", ["Defense"] = "Defesa", ["Health"] = "Vida", ["HP"] = "Vida",
   ["Chaos"] = "Caos", ["Enlightenment"] = "Iluminacao", ["Pathfinding"] = "Exploracao",
@@ -414,6 +420,24 @@ if not H.lang_rewrapped then
     wrap_mgr(pl, "pkg")
     wrap_mgr(rawget(pl, "TableDataManager"), "pkg.sym")
     wrap_mgr(rawget(pl, "Instance"), "pkg.Inst")
+  end
+
+  -- hook do setNamedWidgetText do CPDD (texto fixo tipo "Recommended Builds")
+  local cpdd = package.loaded["mods.cpdd_runtime_fixes.Init"]
+  local rf = type(cpdd) == "table" and (rawget(cpdd, "runtimeFixes") or cpdd) or nil
+  for _, holder in ipairs({ rf, _G.runtimeFixes, _G }) do
+    if type(holder) == "table" then
+      for _, fn in ipairs({ "setNamedWidgetText", "setPanelWidgetText", "SetNamedWidgetText" }) do
+        local o = rawget(holder, fn)
+        if type(o) == "function" and not rawget(holder, "__lr_" .. fn) then
+          rawset(holder, "__lr_" .. fn, true)
+          holder[fn] = function(w, name, text, ...)
+            if type(text) == "string" then text = tl_one(text) end
+            return o(w, name, text, ...)
+          end
+        end
+      end
+    end
   end
 end
 rep["hp_lang"] = "langstr hits=" .. tostring(H.lh)

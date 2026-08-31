@@ -375,6 +375,66 @@ end
 H.runs = (H.runs or 0) + 1
 local now = H.runs
 
+-- ===== MENU ESC (grid + barra lateral) =====
+-- O CPDD FORCA esses rotulos em ingles: MenuBtn_Item.OnRefresh chama
+-- setNamedWidgetText(view,"Text_Name", shortMenuLabels[enum]) e RE-escreve a
+-- cada refresh do menu. O sweep nao ganha essa briga.
+-- Fix: traduzir os VALORES de shortMenuLabels (tabela indexada por enum interno,
+-- so usada como texto de exibicao — nunca comparada) via debug.getupvalue no
+-- proprio OnRefresh que o CPDD instalou. Roda 1x (H.menu_seeded).
+if not H.menu_seeded then
+  local MENU_PT = {
+    Style="Estilo", Explore="Explorar", Dungeon="Masmorra", Arena="Arena",
+    Gear="Equipamento", Skills="Habilidades", Talent="Talento", Pathway="Caminho",
+    Relics="Relíquias", Puppets="Fantoches", Allies="Aliados", Club="Clube",
+    Castle="Castelo", Quests="Missões", Family="Família", Bonds="Vínculos",
+    Awards="Prêmios", Guide="Guia", Creator="Criador", Friends="Amigos",
+    DarkCity="Cidade Sombria", Profile="Perfil", Home="Início", Bag="Mochila",
+    News="Notícias", Mail="Correio", Ranking="Ranking", Unequip="Desequipar",
+    Settings="Configurações", Exit="Sair",
+  }
+  local function seed_tbl(tbl)
+    local hit = 0
+    for k, en in pairs(tbl) do
+      local pt = MENU_PT[en]
+      if pt and pt ~= en then tbl[k] = pt; hit = hit + 1 end
+    end
+    return hit
+  end
+  pcall(function()
+    if type(debug) ~= "table" or type(debug.getupvalue) ~= "function" then return end
+    local cands = {}
+    -- 1) a classe MenuBtn_Item (o OnRefresh do CPDD fecha sobre shortMenuLabels)
+    for _, nm in ipairs({
+      "Gameplay.LogicSystem.Menu.MenuBtn_Item",
+      "mods.cpdd_runtime_fixes.Init", "cpdd_runtime_fixes.Init",
+    }) do
+      local m = package.loaded[nm]
+      if type(m) == "table" then
+        cands[#cands + 1] = m
+        local sym = rawget(m, (nm:match("([^%.]+)$") or ""))
+        if type(sym) == "table" then cands[#cands + 1] = sym end
+      end
+    end
+    local seenfn = {}
+    for _, holder in ipairs(cands) do
+      for _, fn in pairs(holder) do
+        if type(fn) == "function" and not seenfn[fn] then
+          seenfn[fn] = true
+          for i = 1, 90 do
+            local n, v = debug.getupvalue(fn, i)
+            if not n then break end
+            if n == "shortMenuLabels" and type(v) == "table" and not v.__tl_pt then
+              seed_tbl(v); v.__tl_pt = true; H.menu_seeded = true
+            end
+          end
+        end
+      end
+    end
+  end)
+  rep["hp_menu"] = H.menu_seeded and "shortMenuLabels PT" or "n/d (menu ainda nao carregou?)"
+end
+
 -- ====== RE-WRAP AGRESSIVO do GetLangStr/GetRow (a fonte C++ que o CPDD nao pega)
 if not H.lang_rewrapped then
   H.lang_rewrapped = true

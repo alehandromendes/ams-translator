@@ -476,6 +476,9 @@ else
   local _hp_tick, _hp_chunk = 0, nil
   local _dev = ((File.LoadFile(DUMP .. "run") or "") ~= "")
     or ((File.LoadFile(DUMP .. ".dev") or "") ~= "")
+  _G.__hp = _G.__hp or {}
+  _G.__hp._dev = _dev
+  _G.__hp._dumpdir = DUMP
   local HP_EVERY = _dev and 300 or 2000
   local HP_PATH = File.GetFilePath(Paths.ProjectSavedDir())
     .. "/Mods/lua/mods/tl_translate/pt/hotpatch.lua"

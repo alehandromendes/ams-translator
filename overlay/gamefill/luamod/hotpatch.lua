@@ -435,6 +435,100 @@ if not H.menu_seeded then
   rep["hp_menu"] = H.menu_seeded and "shortMenuLabels PT" or "n/d (menu ainda nao carregou?)"
 end
 
+-- ===== PROBE do menu (só em modo dump/dev) — grava _tl_dump/_menu_probe.txt ====
+if H._dev and not H.menu_probed and (H.runs % 20 == 0) then
+  pcall(function()
+    local F = T.File
+    if not (F and (F.SaveStringContentToFile or F.SaveStringToFile)) then return end
+    local out = {}
+    local function p(s) out[#out + 1] = tostring(s) end
+    p("=== MENU PROBE run=" .. tostring(H.runs) .. " ===")
+    p("debug=" .. type(debug)
+      .. " getupvalue=" .. type(debug and debug.getupvalue)
+      .. " getlocal=" .. type(debug and debug.getlocal)
+      .. " setupvalue=" .. type(debug and debug.setupvalue))
+
+    -- 1) classe MenuBtn_Item
+    for _, nm in ipairs({ "Gameplay.LogicSystem.Menu.MenuBtn_Item",
+                          "mods.cpdd_runtime_fixes.Init", "cpdd_runtime_fixes.Init" }) do
+      local m = package.loaded[nm]
+      p("\n[" .. nm .. "] = " .. type(m))
+      if type(m) == "table" then
+        local ks = {}
+        for k, v in pairs(m) do ks[#ks + 1] = tostring(k) .. ":" .. type(v) end
+        p("  keys: " .. table.concat(ks, ", "):sub(1, 400))
+        if debug and debug.getupvalue then
+          for kk, fn in pairs(m) do
+            if type(fn) == "function" then
+              for i = 1, 60 do
+                local n, v = debug.getupvalue(fn, i)
+                if not n then break end
+                if n == "shortMenuLabels" or n == "runtimeFixes"
+                   or n:find("[Mm]enu") or n:find("[Ll]abel") then
+                  p("  upval " .. tostring(kk) .. "[" .. i .. "] " .. n
+                    .. " = " .. type(v))
+                  if type(v) == "table" and n == "shortMenuLabels" then
+                    for ek, ev in pairs(v) do p("      " .. tostring(ek) .. " = " .. tostring(ev)) end
+                  end
+                end
+              end
+            end
+          end
+        end
+      end
+    end
+
+    -- 2) scan raso por rótulos de menu como VALORES
+    local want = { Skills=1, Gear=1, Explore=1, Pathway=1, Talent=1, Relics=1,
+      ["Recommended Builds"]=1, Profile=1, Settings=1, DarkCity=1, Bag=1, Ranking=1 }
+    local seen, found = {}, {}
+    local function scan(t, path, d)
+      if type(t) ~= "table" or seen[t] or d > 4 then return end
+      seen[t] = true
+      for k, v in pairs(t) do
+        local ks = type(k) == "string" and k or ("[" .. tostring(k) .. "]")
+        if type(v) == "string" and want[v] then
+          found[#found + 1] = path .. "." .. ks .. " = " .. v
+        elseif type(v) == "table" and d < 4 then
+          scan(v, path .. "." .. ks, d + 1)
+        end
+      end
+    end
+    p("\n[scan por rotulos de menu como valor]")
+    for nm, mod in pairs(package.loaded) do
+      if type(mod) == "table" and type(nm) == "string"
+         and (nm:find("[Mm]enu") or nm:find("HUD") or nm:find("[Ww]idget")) then
+        pcall(scan, mod, nm, 0)
+      end
+    end
+    if type(_G.Game) == "table" then
+      for k, v in pairs(_G.Game) do
+        if type(v) == "table" and type(k) == "string" and k:find("Menu") then
+          pcall(scan, v, "Game." .. k, 0)
+        end
+      end
+    end
+    for _, f in ipairs(found) do p("  " .. f) end
+    if #found == 0 then p("  (nada — rotulos vem de widget C++/setNamedWidgetText)") end
+
+    -- 3) Game.HUDMiddleMenuSystem
+    local hms = type(_G.Game) == "table" and _G.Game.HUDMiddleMenuSystem
+    p("\n[Game.HUDMiddleMenuSystem] = " .. type(hms))
+    if type(hms) == "table" then
+      local ks = {}
+      for k, v in pairs(hms) do ks[#ks + 1] = tostring(k) .. ":" .. type(v) end
+      p("  keys: " .. table.concat(ks, ", "):sub(1, 600))
+    end
+
+    local path = H._dumpdir .. "_menu_probe.txt"
+    local body = table.concat(out, "\n")
+    pcall(function() return F.SaveStringContentToFile(body, path) end)
+    pcall(function() return F.SaveStringContentToFile(path, body) end)
+    H.menu_probed = true
+    rep["hp_menu_probe"] = "escrito (" .. #out .. " linhas)"
+  end)
+end
+
 -- ====== RE-WRAP AGRESSIVO do GetLangStr/GetRow (a fonte C++ que o CPDD nao pega)
 if not H.lang_rewrapped then
   H.lang_rewrapped = true

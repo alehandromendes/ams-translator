@@ -316,12 +316,16 @@ class Library:
     def state(self, g: Game, root: Path | None = None) -> dict:
         r = Path(root) if root else self.find_game_root(g)
         dep_ok = self.dependency_ok(g, r)
+        mod_present = bool(r) and (
+            (r / "Saved/Mods/lua/cpdd_user_settings.lua").exists()
+            or (r / "Saved/Mods/lua/mods/tl_translate").exists())
         return {
             "root": str(r) if r else "",
             "root_ok": r is not None,
             "dep": g.dependency.name if g.dependency else "",
             "dep_ok": dep_ok,
             "downloaded": self.downloaded(g),
-            "installed": self.installed(g),
+            "installed": self.installed(g) or mod_present,
+            "mod_present": mod_present,
             "can_install": bool(r and dep_ok and self.downloaded(g)),
         }

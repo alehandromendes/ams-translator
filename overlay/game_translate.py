@@ -104,11 +104,8 @@ class _GameCard(QFrame):
         self.path.setReadOnly(True)
         b_browse = QPushButton("Procurar")
         b_browse.clicked.connect(self._browse)
-        b_default = QPushButton("Padrão")
-        b_default.clicked.connect(self._use_default)
         row.addWidget(self.path, 1)
         row.addWidget(b_browse)
-        row.addWidget(b_default)
         outer.addLayout(row)
 
         self.check = QLabel()

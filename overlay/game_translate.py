@@ -216,18 +216,34 @@ class _GameCard(QFrame):
         m.setText(
             f"A tradução PT roda <b>em cima do {dep.name}</b> — ele precisa estar "
             f"instalado no jogo primeiro.<br><br>"
-            f"Vou abrir a página oficial da autora. Lá:<br>"
-            f"<b>1.</b> baixe o instalador (<code>{dep.asset_glob}</code>)<br>"
+            f"<b>1.</b> pegue o instalador do {dep.name}<br>"
             f"<b>2.</b> rode: aponte a pasta do jogo → pré-check → <b>Install English</b><br>"
             f"<b>3.</b> volte aqui e clique em <b>Instalar</b><br><br>"
-            f"<i>O {dep.name} é distribuído só pela autora — este app nunca o "
-            f"redistribui.</i>")
-        ok = m.addButton("Abrir GitHub do CPDD", QMessageBox.ButtonRole.AcceptRole)
+            f"<i>O instalador é o oficial da autora (release no GitHub dela). "
+            f"Este app nunca hospeda nem redistribui — só baixa o mesmo arquivo "
+            f"pra você.</i>")
+        direct = None
+        if dep.direct_url:
+            direct = m.addButton("Baixar Patch CPDD English direto",
+                                 QMessageBox.ButtonRole.AcceptRole)
+        page = m.addButton("Abrir GitHub do CPDD", QMessageBox.ButtonRole.ActionRole)
         m.addButton("Cancelar", QMessageBox.ButtonRole.RejectRole)
         m.exec()
-        if m.clickedButton() is ok:
+        clicked = m.clickedButton()
+        if direct is not None and clicked is direct:
+            def _get_cpdd(**kw):
+                path = self.dlg.lib.fetch_dependency_direct(
+                    self.game, progress_cb=kw.get("progress_cb"))
+                library.Library.run_installer(path)
+            self.dlg._run_job(
+                "Baixando o CPDD English patch…", _get_cpdd, self.refresh,
+                done_msg=("Instalador aberto. No wizard do CPDD: aponte a pasta do "
+                          "jogo → pré-check → Install English. Depois clique em Instalar."))
+        elif clicked is page:
             webbrowser.open(dep.page_url)
-        self.refresh()
+            self.refresh()
+        else:
+            self.refresh()
 
 
 class GameTranslateDialog(QDialog):
@@ -258,8 +274,9 @@ class GameTranslateDialog(QDialog):
         steps = QLabel(
             "<b>Como instalar</b> (Lord of Mysteries)<br>"
             "<b>1.</b> Instale o <b>CPDD English patch</b> — clique em "
-            "<i>Instalar base</i> (abre o GitHub da autora; baixe e rode o "
-            "instalador dela: pasta do jogo → pré-check → <i>Install English</i>).<br>"
+            "<i>Instalar base</i> → <b>Baixar Patch CPDD English direto</b> "
+            "(ou abra o GitHub da autora). Rode o instalador: pasta do jogo → "
+            "pré-check → <i>Install English</i>.<br>"
             "<b>2.</b> Volte aqui e clique em <b>Instalar</b> — aplica a tradução PT "
             "(só cria uma pasta no jogo, não mexe no CPDD).<br>"
             "<b>3.</b> Reinicie o jogo. Para desfazer: <i>Restaurar original</i>.")

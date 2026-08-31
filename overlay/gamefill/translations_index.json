@@ -30,6 +30,7 @@
         "page_url": "https://github.com/Lani27/lord-of-mysteries-english-patch/releases/latest",
         "api_url": "https://api.github.com/repos/Lani27/lord-of-mysteries-english-patch/releases/latest",
         "asset_glob": "Lord-of-Mysteries-English-Patch-*.exe",
+        "direct_url": "https://github.com/Lani27/lord-of-mysteries-english-patch/releases/download/v2.2.3/Lord-of-Mysteries-English-Patch-2.2.exe",
         "author": "Lani27 (CPDD)",
         "required": true,
         "note": "PRÉ-REQUISITO. A tradução PT roda EM CIMA do CPDD English patch: ele faz 中文→inglês e instala a ponte de carregamento no .pak; nós só traduzimos o inglês dele pra PT em runtime, sem tocar nos arquivos dele. O CPDD é distribuído só pela autora (GitHub/Discord) — este projeto NUNCA redistribui, só baixa o instalador OFICIAL dela pra você. No wizard do CPDD: 1) aponte a pasta do jogo (…/Game/C7) ou Auto-detect  2) espere o pré-check  3) Install English. Depois volte aqui e clique em Instalar."

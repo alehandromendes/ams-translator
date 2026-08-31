@@ -51,6 +51,7 @@ class Dependency:
     page_url: str = ""             # página pública do instalador oficial
     api_url: str = ""              # GitHub API da última release
     asset_glob: str = "*.exe"      # padrão do asset do instalador
+    direct_url: str = ""           # link fixo do instalador (release oficial da autora)
     note: str = ""
 
 
@@ -94,7 +95,8 @@ def _parse(data: dict) -> list[Game]:
             dep = Dependency(
                 id=d["id"], name=d["name"], detect=list(d.get("detect", [])),
                 page_url=d.get("page_url", ""), api_url=d.get("api_url", ""),
-                asset_glob=d.get("asset_glob", "*.exe"), note=d.get("note", ""),
+                asset_glob=d.get("asset_glob", "*.exe"),
+                direct_url=d.get("direct_url", ""), note=d.get("note", ""),
             )
         games.append(Game(
             id=g["id"], name=g["name"],
@@ -214,6 +216,36 @@ class Library:
                     got += len(chunk)
                     if progress_cb and total:
                         progress_cb(f"baixando {match['name']}", got, total)
+            os.replace(tmp, dest)
+        if progress_cb:
+            progress_cb("baixado", 1, 1)
+        return dest
+
+    def fetch_dependency_direct(self, g: Game, progress_cb=None) -> Path:
+        """Baixa o instalador da dependência por link FIXO (release oficial da
+        autora). Mesmo arquivo que o botão da página do GitHub — não hospedamos
+        nada, só automatizamos o download."""
+        dep = g.dependency
+        if not dep or not dep.direct_url:
+            raise RuntimeError("sem direct_url da dependência no índice")
+        DEPS_DIR.mkdir(parents=True, exist_ok=True)
+        name = dep.direct_url.rsplit("/", 1)[-1] or "cpdd-english-patch.exe"
+        dest = DEPS_DIR / name
+        with _SESSION.get(dep.direct_url, stream=True, timeout=(15, 300)) as resp:
+            resp.raise_for_status()
+            total = int(resp.headers.get("content-length") or 0)
+            if dest.exists() and total and dest.stat().st_size == total:
+                if progress_cb:
+                    progress_cb("já baixado", 1, 1)
+                return dest
+            got = 0
+            tmp = dest.with_suffix(".part")
+            with open(tmp, "wb") as fh:
+                for chunk in resp.iter_content(65536):
+                    fh.write(chunk)
+                    got += len(chunk)
+                    if progress_cb and total:
+                        progress_cb(f"baixando {name}", got, total)
             os.replace(tmp, dest)
         if progress_cb:
             progress_cb("baixado", 1, 1)

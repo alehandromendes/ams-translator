@@ -178,11 +178,16 @@ class Library:
 
     # ---- dependência (ex.: CPDD) --------------------------------
     def dependency_ok(self, g: Game, root: Path | None) -> bool:
+        return not self.dependency_missing(g, root)
+
+    def dependency_missing(self, g: Game, root: Path | None) -> list[str]:
+        """Lista dos arquivos de detecção da dependência que faltam.
+        [] = dependência OK (ou não há dependência)."""
         if not g.dependency:
-            return True
+            return []
         if not root:
-            return False
-        return all((Path(root) / d).exists() for d in g.dependency.detect)
+            return list(g.dependency.detect)
+        return [d for d in g.dependency.detect if not (Path(root) / d).exists()]
 
     def fetch_dependency_installer(self, g: Game, progress_cb=None) -> Path:
         """Baixa o instalador OFICIAL da dependência (fonte dela, não daqui)."""
@@ -316,7 +321,8 @@ class Library:
     def state(self, g: Game, root: Path | None = None,
               autodetect: bool = True) -> dict:
         r = Path(root) if root else (self.find_game_root(g) if autodetect else None)
-        dep_ok = self.dependency_ok(g, r)
+        dep_missing = self.dependency_missing(g, r)
+        dep_ok = not dep_missing
         mod_present = bool(r) and (
             (r / "Saved/Mods/lua/cpdd_user_settings.lua").exists()
             or (r / "Saved/Mods/lua/mods/tl_translate").exists())
@@ -325,6 +331,7 @@ class Library:
             "root_ok": r is not None,
             "dep": g.dependency.name if g.dependency else "",
             "dep_ok": dep_ok,
+            "dep_missing": dep_missing,
             "downloaded": self.downloaded(g),
             "installed": self.installed(g) or mod_present,
             "mod_present": mod_present,

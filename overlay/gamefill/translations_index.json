@@ -25,7 +25,7 @@
         "name": "CPDD English patch",
         "detect": [
           "Saved/Mods/bootstrap.lua",
-          "Saved/Mods/lua/mods/cpdd_runtime_fixes/RuntimeTextGemini.lua"
+          "Saved/Mods/lua/mods/cpdd_runtime_fixes/Init.lua"
         ],
         "page_url": "https://github.com/Lani27/lord-of-mysteries-english-patch/releases/latest",
         "api_url": "https://api.github.com/repos/Lani27/lord-of-mysteries-english-patch/releases/latest",

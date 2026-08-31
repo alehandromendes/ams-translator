@@ -104,8 +104,13 @@ class _GameCard(QFrame):
         self.path.setReadOnly(True)
         b_browse = QPushButton("Procurar")
         b_browse.clicked.connect(self._browse)
+        b_verify = QPushButton("Verificar")
+        b_verify.setToolTip("Recheca a pasta do jogo e se o CPDD English patch "
+                            "está instalado.")
+        b_verify.clicked.connect(self.refresh)
         row.addWidget(self.path, 1)
         row.addWidget(b_browse)
+        row.addWidget(b_verify)
         outer.addLayout(row)
 
         self.check = QLabel()
@@ -141,14 +146,30 @@ class _GameCard(QFrame):
         self.root = Path(st["root"]) if st["root"] else self.root
         dep = self.game.dependency
 
+        lines = []
         if not st["root_ok"]:
-            self.check.setText("escolha a pasta do jogo (…\\Game\\C7) em Procurar")
-        elif dep and not st["dep_ok"]:
-            self.check.setText(f"✗ falta a base: {dep.name} não está instalado")
-        elif st["installed"]:
-            self.check.setText("✓ tradução PT instalada")
+            lines.append("① escolha a pasta do jogo (…\\Game\\C7) em <b>Procurar</b>")
         else:
-            self.check.setText("✓ pronto pra instalar")
+            lines.append(f"✓ pasta do jogo: <code>{st['root']}</code>")
+            if dep:
+                if st["dep_ok"]:
+                    lines.append(f"✓ {dep.name} detectado no jogo")
+                else:
+                    miss = st.get("dep_missing") or []
+                    lines.append(
+                        f"✗ <b>{dep.name} NÃO encontrado</b> — clique em "
+                        f"<b>Instalar base</b>"
+                        + (f"<br><span style='opacity:.7'>falta: "
+                           f"{', '.join(miss)}</span>" if miss else ""))
+            if st["dep_ok"]:
+                if st["installed"]:
+                    lines.append("✓ tradução PT instalada — reinicie o jogo")
+                elif not st["downloaded"]:
+                    lines.append("→ baixe a tradução (botão <b>Baixar</b>)")
+                else:
+                    lines.append("→ pronto pra instalar a tradução PT")
+        self.check.setTextFormat(Qt.TextFormat.RichText)
+        self.check.setText("<br>".join(lines))
 
         icon, text, enabled = "languages", "  Instalar", False
         if not st["root_ok"]:
@@ -231,7 +252,8 @@ class _GameCard(QFrame):
             self.dlg._run_job(
                 "Baixando o CPDD English patch…", _get_cpdd, self.refresh,
                 done_msg=("Instalador aberto. No wizard do CPDD: aponte a pasta do "
-                          "jogo → pré-check → Install English. Depois clique em Instalar."))
+                          "jogo → pré-check → Install English. Quando terminar, "
+                          "clique em Verificar aqui."))
         elif clicked is page:
             webbrowser.open(dep.page_url)
             self.refresh()

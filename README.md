@@ -65,17 +65,23 @@ Botão **Tradução de jogos** na barra de ações. O app lê o índice da
 [biblioteca de traduções][lib] e conduz o fluxo:
 
 1. **Acha a pasta do jogo** (autodetect ou *Procurar*).
-2. **Dependência** — se a tradução precisa de uma base (ex.: o CPDD English patch),
-   o app detecta se está instalada. Se não: baixa o **instalador oficial** da fonte
-   dela e abre o wizard. *Nada da dependência fica hospedado neste projeto.*
-3. **Baixar** — traz os arquivos PT para `…/TradutorDeLegendas/traducoes/<jogo>/`.
-4. **Instalar** — copia para o jogo, guardando o original antes.
-5. **Restaurar original** desfaz a qualquer momento.
+2. **Pré-requisito** — o app checa se a **base** (o CPDD English patch) está
+   instalada no jogo. Se não estiver, mostra o aviso e um botão que **baixa o
+   instalador OFICIAL do CPDD** (do GitHub da autora) e abre o wizard dele.
+   *O CPDD nunca é hospedado nem redistribuído por este projeto* — ele é
+   distribuído só pela autora ([Lani27](https://github.com/Lani27/lord-of-mysteries-english-patch/releases/latest)
+   / Discord CPDD). No wizard: aponte a pasta do jogo → pré-check → **Install English**.
+3. **Instalar** — cria só `Saved/Mods/lua/mods/tl_translate/` + `cpdd_user_settings.lua`
+   no jogo. **Não modifica nenhum arquivo do CPDD.**
+4. **Restaurar original** — remove o mod; o jogo volta ao CPDD puro.
 
-Suporte inicial: **Lord of Mysteries** — ponte **中文 → EN → PT-BR**. O jogo é em
-chinês; o [CPDD English patch](https://github.com/Lani27/lord-of-mysteries-english-patch)
-faz 中文 → inglês (e a ponte de carregamento no `.pak` — a parte difícil), e este pacote
-traduz o inglês do patch → PT-BR. Reinstale após cada atualização do patch.
+### Lord of Mysteries — ponte 中文 → EN → PT-BR
+
+O jogo é em chinês. O **[CPDD English patch](https://github.com/Lani27/lord-of-mysteries-english-patch)**
+(pré-requisito) faz 中文 → inglês e instala a ponte de carregamento no `.pak` — a
+parte difícil. Este pacote traduz **o inglês do CPDD → PT-BR em runtime**, via um
+mod (`tl_translate`) carregado pelo LOMModLoader — sem tocar nos arquivos do CPDD.
+Se o CPDD atualizar, basta reabri-lo pelo wizard; a tradução PT continua funcionando.
 
 ---
 

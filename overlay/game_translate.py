@@ -208,11 +208,16 @@ class _GameCard(QFrame):
                 done_msg="Tradução instalada. Reinicie o jogo pra ver.")
 
     def _install_dependency(self, dep: "library.Dependency") -> None:
-        if QMessageBox.question(
-            self.dlg, f"Instalar {dep.name}",
-            f"{dep.note}\n\nBaixar o instalador oficial do {dep.name} agora?\n"
-            f"Fonte: {dep.page_url}"
-        ) != QMessageBox.StandardButton.Yes:
+        m = QMessageBox(self.dlg)
+        m.setWindowTitle(f"Pré-requisito: {dep.name}")
+        m.setIcon(QMessageBox.Icon.Warning)
+        m.setText(
+            f"A tradução PT precisa do <b>{dep.name}</b> instalado no jogo primeiro.\n\n"
+            f"{dep.note}\n\n"
+            f"Posso baixar o instalador OFICIAL agora (do GitHub da autora, "
+            f"{dep.page_url}) e abrir o wizard dele pra você?")
+        m.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        if m.exec() != QMessageBox.StandardButton.Yes:
             return
 
         def after(err_ignored=None) -> None:

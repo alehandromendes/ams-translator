@@ -8,6 +8,62 @@ H.resweep_on = true
 
 local nmod = 0
 for _ in pairs(package.loaded) do nmod = nmod + 1 end
+
+-- ===== PASSE DE LOGIN: roda cedo, traduz a tela de selecao de personagem =====
+if not _G.__login_done then
+  local en2pt0 = T.en2pt
+  local LOGIN_OVR = {
+    ["Select Character"] = "Selecionar Personagem",
+    ["Enter World"] = "Entrar no Mundo dos Beyounders",
+    ["Enter the World"] = "Entrar no Mundo dos Beyounders",
+    ["Create Character"] = "Criar Personagem", ["Delete Character"] = "Excluir Personagem",
+    ["Connect to Server"] = "Conectando ao servidor", ["Connecting"] = "Conectando",
+    ["Reconnecting"] = "Reconectando", ["Loading"] = "Carregando",
+    ["Verifying resource files"] = "Verificando arquivos", ["Music"] = "Música",
+    ["Repair"] = "Reparar", ["Feedback"] = "Feedback", ["Login"] = "Entrar",
+    ["Exit"] = "Sair", ["Announcement"] = "Aviso", ["Server"] = "Servidor",
+  }
+  local hit = 0
+  local seen0 = {}
+  local function lw(t, d)
+    if type(t) ~= "table" or seen0[t] or d > 7 then return end
+    seen0[t] = true
+    pcall(function()
+      for k, v in pairs(t) do
+        local ks = tostring(k)
+        if ks ~= "class" and ks:sub(1,2) ~= "__" then
+          if type(v) == "string" and #v > 1 and #v < 200 then
+            local p = LOGIN_OVR[v]
+            if not p and v:find(" ") then p = en2pt0(v) end
+            if p and p ~= v then t[k] = p; hit = hit + 1 end
+          elseif type(v) == "table" then lw(v, d + 1)
+          end
+        end
+      end
+    end)
+  end
+  for name, mod in pairs(package.loaded) do
+    if type(mod) == "table" and type(name) == "string" then
+      local nl = name:lower()
+      if nl:find("login") or nl:find("selectrole") or nl:find("charselect")
+         or nl:find("createrole") or nl:find("launch") or nl:find("startup")
+         or nl:find("rolelist") or nl:find("serverselect") then
+        pcall(lw, mod, 0)
+      end
+    end
+  end
+  if type(_G.Game) == "table" then
+    for k, v in pairs(_G.Game) do
+      if type(v) == "table" and type(k) == "string"
+         and (k:find("Login") or k:find("Role") or k:find("Launch")) then
+        pcall(lw, v, 0)
+      end
+    end
+  end
+  rep["hp_login"] = "login pass hit=" .. hit .. " (nmod=" .. nmod .. ")"
+  if hit > 0 or nmod > 200 then _G.__login_done = true end
+end
+
 if nmod < 180 then rep["hp"] = "carregando (" .. nmod .. ")"; return "wait" end
 
 local DISPLAY_KEY = { Name=1,Title=1,Desc=1,Description=1,Text=1,Content=1,Tip=1,
@@ -218,7 +274,43 @@ local function ok_string(k, v)
   if (v:find(" ") and #v >= 12) or DISPLAY_KEY[ks] then return true end
   return false
 end
-_G.__hp_miss = _G.__hp_miss or {}
+-- ===== SCAN: acumula strings EN nao-traduzidas p/ o proximo build =====
+_G.__scan = _G.__scan or {}        -- { en_string = true }
+_G.__scan_n = _G.__scan_n or 0
+_G.__scan_dirty = _G.__scan_dirty or false
+-- palavras que so aparecem em INGLES (p/ nao capturar PT ja traduzido)
+local _EN_W = { [" the "]=1, [" of "]=1, [" to "]=1, [" and "]=1, [" you "]=1,
+  [" your "]=1, [" is "]=1, [" are "]=1, [" will "]=1, [" can "]=1, [" for "]=1,
+  [" with "]=1, [" this "]=1, [" that "]=1, ["The "]=1, ["Use "]=1, ["Get "]=1,
+  ["Complete "]=1, ["Obtain "]=1, ["Unlock"]=1, ["Reach "]=1, ["Increase"]=1 }
+local function scan_capture(v)
+  if type(v) ~= "string" then return end
+  local L = #v
+  if L < 4 or L > 2000 then return end
+  if v:find("[\228-\233]") then return end
+  if v:find("[\195\128-\195\191]") then return end     -- tem acento -> ja e PT
+  if not v:find("%a%a%a") then return end
+  if v:find("^[/%.#@<]") or v:find("^%u[%u_%d]+$") then return end
+  if _G.__scan[v] then return end
+  if tl_one(v) ~= v then return end
+  -- so captura se PARECE ingles (tem palavra funcional EN)
+  local en = false
+  for w in pairs(_EN_W) do if v:find(w, 1, true) then en = true break end end
+  if not en then return end
+  _G.__scan[v] = true
+  _G.__scan_n = _G.__scan_n + 1
+  _G.__scan_dirty = true
+end
+local _SCAN_PATH = "C:/Jogos/Game/C7/Saved/Mods/lua/mods/tl_translate/pt/_scan_misses.txt"
+local function scan_flush()
+  if not _G.__scan_dirty then return end
+  _G.__scan_dirty = false
+  local out = {}
+  for s in pairs(_G.__scan) do out[#out + 1] = (s:gsub("[\r\n]", " ")) end
+  pcall(function() T.File.SaveStringContentToFile(table.concat(out, "\n"), _SCAN_PATH) end)
+  pcall(function() T.File.SaveStringContentToFile(_SCAN_PATH, table.concat(out, "\n")) end)
+end
+
 local function sweep(roots, cap)
   local st = { c = 0, miss = 0 }; local seen = {}; local n = 0
   local function walk(t)
@@ -234,9 +326,8 @@ local function sweep(roots, cap)
               local p = tl_one(v)
               if p ~= v then
                 pcall(function() t[k] = p end); st.c = st.c + 1
-              elseif v:find("[A-Za-z].*[A-Za-z].*[A-Za-z]") and #v > 8 then
-                st.miss = st.miss + 1
-                if #_G.__hp_miss < 15 then _G.__hp_miss[#_G.__hp_miss + 1] = ks .. "=" .. v:sub(1, 55) end
+              else
+                pcall(scan_capture, v)
               end
             end
           elseif type(v) == "table" then walk(v) end
@@ -398,5 +489,6 @@ if #_G.__adv < 25 and type(_G.Game) == "table" then
   for i, s in ipairs(_G.__adv) do rep["adv_" .. i] = s end
 end
 
-rep["hp"] = "re-sweep +" .. c .. " acum=" .. H.bf .. " langhits=" .. tostring(H.lh)
+pcall(scan_flush)
+rep["hp"] = "re-sweep +" .. c .. " acum=" .. H.bf .. " scan=" .. _G.__scan_n
 return "rs " .. c

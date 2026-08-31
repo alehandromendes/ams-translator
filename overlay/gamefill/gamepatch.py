@@ -74,14 +74,16 @@ def prepare(root: Path) -> None:
     (root / REL_DUMP_DIR / "status").unlink(missing_ok=True)
 
 
-def install(root: Path, progress_cb=None, pt_src=None) -> dict:
+def install(root: Path, progress_cb=None, pt_src=None, dump=False) -> dict:
     """Instalação direta: mod tl_translate + traduções PT.
     NÃO modifica nenhum arquivo do CPDD — restaura qualquer modificação prévia
     (RuntimeTextGemini.lua / Init.lua) e só cria pastas seguras do usuário.
 
     pt_src: pasta com os .lua PT já baixados (library.game_dir). Se None, cai no
     PREBUILT embutido — que só existe em build de dev; no instalador a tradução
-    é baixada."""
+    é baixada.
+    dump: DEV — cria _tl_dump/run pra o mod dumpar os textos do jogo (+ hot-reload
+    do hotpatch). Fora do dev fica sempre False."""
     import shutil
     # 1) devolve os arquivos do CPDD ao original (se tiverem sido modificados antes)
     try:
@@ -104,9 +106,14 @@ def install(root: Path, progress_cb=None, pt_src=None) -> dict:
         raise RuntimeError(
             "nenhum arquivo de tradução encontrado — clique em Baixar primeiro "
             f"({src})")
-    # modo aplicar: NUNCA deixa _tl_dump/ no jogo do usuário (é ferramenta de
-    # dev; a presença de _tl_dump/run ligaria o dump e daria hitch no jogo).
-    shutil.rmtree(root / REL_DUMP_DIR, ignore_errors=True)
+    dumpdir = root / REL_DUMP_DIR
+    if dump:
+        dumpdir.mkdir(parents=True, exist_ok=True)
+        (dumpdir / "run").write_text("1", "utf-8")
+    else:
+        # NUNCA deixa _tl_dump/ no jogo do usuário — a presença de _tl_dump/run
+        # ligaria o dump e daria hitch. Só entra via toggle dev.
+        shutil.rmtree(dumpdir, ignore_errors=True)
     if progress_cb:
         progress_cb({"phase": "pronto", "files": n})
     return {"files": n}

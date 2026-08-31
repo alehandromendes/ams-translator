@@ -11,6 +11,7 @@ from pathlib import Path
 
 from PySide6.QtCore import Qt, QThread, Signal
 from PySide6.QtWidgets import (
+    QCheckBox,
     QDialog,
     QFileDialog,
     QFrame,
@@ -127,6 +128,16 @@ class _GameCard(QFrame):
         self.check.setWordWrap(True)
         outer.addWidget(self.check)
 
+        # DEV: toggle pra instalar já com o modo dump ligado (_tl_dump/run).
+        # Só aparece rodando do código-fonte (não no .exe do usuário).
+        self.chk_dump = None
+        if not getattr(config, "FROZEN", False):
+            self.chk_dump = QCheckBox("Instalar com modo dump (dev)")
+            self.chk_dump.setToolTip(
+                "Cria _tl_dump/run — o mod dumpa os textos atuais do jogo e liga "
+                "o hot-reload do hotpatch.lua. Só pra desenvolvimento.")
+            outer.addWidget(self.chk_dump)
+
         # começa em branco de propósito: o usuário TEM que apontar a pasta C7
         # (é o que libera o botão Instalar).
         self.refresh()
@@ -236,13 +247,19 @@ class _GameCard(QFrame):
         else:
             # instalação 100% via gamepatch: mod tl_translate + PT baixado.
             # NÃO modifica arquivos do CPDD.
+            dump = bool(self.chk_dump and self.chk_dump.isChecked())
+
             def _do_install(**kw):
                 from .gamefill import gamepatch
-                gamepatch.install(self.root, pt_src=lib.game_dir(self.game))
+                gamepatch.install(self.root, pt_src=lib.game_dir(self.game),
+                                  dump=dump)
                 lib._mark_installed(self.game, self.root)
             self.dlg._run_job(
                 "Instalando…", _do_install, self.refresh,
-                done_msg="Tradução instalada. Reinicie o jogo pra ver.")
+                done_msg=("Instalado COM modo dump. Abra o jogo, navegue pelas "
+                          "telas, feche, e rode 'gamepatch build'."
+                          if dump else
+                          "Tradução instalada. Reinicie o jogo pra ver."))
 
     def _install_dependency(self, dep: "library.Dependency") -> None:
         import webbrowser

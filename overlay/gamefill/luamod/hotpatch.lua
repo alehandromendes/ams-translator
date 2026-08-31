@@ -111,6 +111,9 @@ local OVR = {
   ["Related Notes:"] = "Notas Relacionadas:", ["Sealed Artifact"] = "Artefato Selado",
   ["Beyonder"] = "Beyonder", ["点击输入"] = "Clique para digitar",
   ["Visual Guide:"] = "Guia Visual:",
+  ["Aumentar a favorabilidade"] = "Aumentar vinculo", ["Increase Favorability"] = "Aumentar vinculo",
+  ["Increase favorability"] = "Aumentar vinculo", ["Favorability"] = "Vinculo",
+  ["Nivel de conexao aumentado"] = "Nivel de vinculo aumentado",
   -- menu de estilo/aparencia
   ["Close"] = "Desativar", ["Open"] = "Ativar", ["On"] = "Sim", ["Off"] = "Não",
   ["Enable"] = "Ativar", ["Disable"] = "Desativar", ["Enabled"] = "Ativado", ["Disabled"] = "Desativado",

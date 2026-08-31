@@ -87,6 +87,16 @@ local OVR = {
   ["Achievement Points"] = "Pontos de Conquista", ["Player"] = "Jogador",
   ["Pathway"] = "Caminho", ["Club"] = "Clube", ["Competition"] = "Competição",
   ["Dungeon"] = "Masmorra", ["Family"] = "Família", ["Castle"] = "Castelo",
+  -- menu ESC (HUD middle menu) — rótulos de 1 palavra
+  ["Style"] = "Estilo", ["Arena"] = "Arena", ["Explore"] = "Explorar",
+  ["Gear"] = "Equipamento", ["Skills"] = "Habilidades", ["Talent"] = "Talento",
+  ["Relics"] = "Relíquias", ["Puppets"] = "Fantoches", ["Allies"] = "Aliados",
+  ["Quests"] = "Missões", ["DarkCity"] = "Cidade Sombria", ["Dark City"] = "Cidade Sombria",
+  ["Bonds"] = "Vínculos", ["Awards"] = "Prêmios", ["Guide"] = "Guia",
+  ["Creator"] = "Criador", ["Unequip"] = "Desequipar",
+  ["Character ID"] = "ID do personagem", ["Level cap reached"] = "Limite de nível alcançado",
+  -- (Home/News/Bag/Ranking/Profile: deixados em EN — palavras curtas que o jogo
+  --  pode usar como enum; traduzir arriscava quebrar navegação)
   ["Cult"] = "Culto", ["Unranked"] = "Sem classificação", ["All Pathways"] = "Todos os Caminhos",
   ["Spectator"] = "Espectador", ["Bard"] = "Bardo", ["Seer"] = "Vidente",
   ["Warrior"] = "Guerreiro", ["Apprentice"] = "Aprendiz", ["Mystery Pryer"] = "Investigador de Mistérios",
@@ -358,7 +368,7 @@ local function sweep(roots, cap)
     end)
   end
   for _, r in ipairs(roots) do walk(r) end
-  return st.c, st.miss
+  return st.c, n            -- traduzidas, nós visitados
 end
 
 -- cooldown por CONTADOR de execucao (os.time pode ser constante no sandbox)
@@ -434,22 +444,38 @@ end
 rep["hp_lang"] = "langstr hits=" .. tostring(H.lh)
 
 if not H.big_done then
-  local roots = {}
-  for name, mod in pairs(package.loaded) do
-    if type(mod) == "table" and type(name) == "string" and #name < 120
-       and name ~= "string" and name ~= "table" and name ~= "math" and name ~= "os"
-       and name ~= "io" and name ~= "debug" and name ~= "coroutine" and name ~= "bit"
-       and name ~= "jit" and name ~= "ffi" and not SKIP[name]
-       and not name:find("Cinematic") and not name:find("Sequence")
-       and not name:find("StateMachine") and not name:find("Locomotion")
-       and not name:find("AnimNotify") and not name:find("Behavior") then
-      roots[#roots + 1] = mod
+  -- INCREMENTAL: no máx ~30k nós por passada pra NÃO dar hitch. Como o hot_check
+  -- roda a cada ~2000 ticks, a varredura completa leva alguns segundos de jogo,
+  -- espalhada em frames — sem travar.
+  if not H.roots then
+    local r = {}
+    for name, mod in pairs(package.loaded) do
+      if type(mod) == "table" and type(name) == "string" and #name < 120
+         and name ~= "string" and name ~= "table" and name ~= "math" and name ~= "os"
+         and name ~= "io" and name ~= "debug" and name ~= "coroutine" and name ~= "bit"
+         and name ~= "jit" and name ~= "ffi" and not SKIP[name]
+         and not name:find("Cinematic") and not name:find("Sequence")
+         and not name:find("StateMachine") and not name:find("Locomotion")
+         and not name:find("AnimNotify") and not name:find("Behavior") then
+        r[#r + 1] = mod
+      end
     end
+    if type(_G.Game) == "table" then r[#r + 1] = _G.Game end
+    H.roots = r; H.ri = 1; H.bf = 0
   end
-  if type(_G.Game) == "table" then roots[#roots + 1] = _G.Game end
-  local c = sweep(roots, 400000)
-  H.big_done = true; H.last_sweep = now; H.bf = c
-  rep["hp"] = "BIG(v19) c=" .. c
+  local BUDGET, spent = 30000, 0
+  while H.ri <= #H.roots and spent < BUDGET do
+    local c, nodes = sweep({ H.roots[H.ri] }, BUDGET - spent)
+    H.bf = (H.bf or 0) + c; spent = spent + (nodes or 0)
+    H.ri = H.ri + 1
+  end
+  if H.ri > #H.roots then
+    H.big_done = true; H.last_sweep = now; H.roots = nil
+    rep["hp"] = "BIG ok c=" .. H.bf
+  else
+    rep["hp"] = "BIG " .. H.ri .. "/" .. #H.roots .. " c=" .. H.bf
+    return "big-incr"
+  end
 end
 
 -- HOOK GLOBAL: toda classe (em package.loaded) que tenha SetText/SetName/SetContentText
@@ -482,7 +508,7 @@ end
 
 -- re-sweep LEVE: so os sistemas de UI de Game.* + modulos de painel.
 -- cooldown por contador. cap baixo pra nao dar hitch.
-if H.last_sweep and (now - H.last_sweep) < 10 then rep["hp"] = "cd"; return "cd" end
+if H.last_sweep and (now - H.last_sweep) < 3 then rep["hp"] = "cd"; return "cd" end
 H.last_sweep = now
 local roots = {}
 if type(_G.Game) == "table" then
@@ -503,7 +529,7 @@ for name, mod in pairs(package.loaded) do
     end
   end
 end
-local c = sweep(roots, 90000)
+local c = sweep(roots, 25000)      -- cap baixo: re-sweep frequente mas sem hitch
 H.bf = (H.bf or 0) + c
 
 -- probe: captura strings de avanço/sequencia p/ eu ver

@@ -104,8 +104,9 @@ def install(root: Path, progress_cb=None, pt_src=None) -> dict:
         raise RuntimeError(
             "nenhum arquivo de tradução encontrado — clique em Baixar primeiro "
             f"({src})")
-    (root / REL_DUMP_DIR).mkdir(parents=True, exist_ok=True)
-    (root / REL_DUMP_DIR / "run").unlink(missing_ok=True)   # modo aplicar
+    # modo aplicar: NUNCA deixa _tl_dump/ no jogo do usuário (é ferramenta de
+    # dev; a presença de _tl_dump/run ligaria o dump e daria hitch no jogo).
+    shutil.rmtree(root / REL_DUMP_DIR, ignore_errors=True)
     if progress_cb:
         progress_cb({"phase": "pronto", "files": n})
     return {"files": n}

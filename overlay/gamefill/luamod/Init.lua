@@ -468,34 +468,38 @@ else
     return v
   end
 
-  -- ---- HOT-RELOAD: roda pt/hotpatch.lua sempre que ele mudar (sem restart) ----
-  -- usa loadfile (le fresco do disco) — File.LoadFile CACHEIA por sessao.
-  local _hp_sig, _hp_tick = "", 0
+  -- ---- roda pt/hotpatch.lua ----
+  -- DEV (marca _tl_dump/.dev ou _tl_dump/run existe): recarrega FRESCO do disco
+  --   a cada 300 ticks — permite editar o hotpatch sem reiniciar o jogo.
+  -- PRODUÇÃO (usuário final): compila UMA vez, reusa, e roda a cada 2000 ticks
+  --   — zero I/O por tick e cadência baixa pra NÃO dar hitch no jogo.
+  local _hp_tick, _hp_chunk = 0, nil
+  local _dev = ((File.LoadFile(DUMP .. "run") or "") ~= "")
+    or ((File.LoadFile(DUMP .. ".dev") or "") ~= "")
+  local HP_EVERY = _dev and 300 or 2000
   local HP_PATH = File.GetFilePath(Paths.ProjectSavedDir())
     .. "/Mods/lua/mods/tl_translate/pt/hotpatch.lua"
   local function hot_check()
     _hp_tick = _hp_tick + 1
-    if _hp_tick % 300 ~= 0 then return end
-    local chunk, err
-    if type(loadfile) == "function" then
-      chunk, err = loadfile(HP_PATH)          -- fresh do disco
+    -- primeira passada cedo (tick 120), depois na cadência
+    if _hp_tick ~= 120 and _hp_tick % HP_EVERY ~= 0 then return end
+    local chunk = _hp_chunk
+    if _dev or not chunk then
+      chunk = nil
+      if _dev and type(loadfile) == "function" then
+        chunk = loadfile(HP_PATH)                     -- fresh do disco (dev)
+      end
+      if not chunk then
+        local src = File.LoadFile(SELF .. "pt/hotpatch.lua")
+        if src and src ~= "" then chunk = load(src, "@hotpatch") end
+      end
+      if not _dev then _hp_chunk = chunk end          -- cacheia em produção
     end
-    if not chunk then
-      -- fallback: File.LoadFile (pode cachear)
-      local src = File.LoadFile(SELF .. "pt/hotpatch.lua")
-      if not src or src == "" then return end
-      chunk, err = load(src, "@hotpatch")
-    end
-    if not chunk then
-      _report["hotpatch"] = "load err: " .. tostring(err):sub(1, 60)
-      return
-    end
-    -- assinatura: roda so se o resultado/estado mudou. como loadfile e fresco,
-    -- roda toda vez (o proprio hotpatch tem guardas de idempotencia/cooldown).
+    if not chunk then return end
     local ok, res = pcall(chunk)
     _report["hotpatch"] = ok and ("ok: " .. tostring(res))
       or ("run err: " .. tostring(res):sub(1, 60))
-    pcall(write_apply_status)
+    if _dev then pcall(write_apply_status) end
   end
 
   local function bump(name)

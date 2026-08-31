@@ -61,19 +61,39 @@ Todos os atalhos são reconfiguráveis em **Atalhos** (grave qualquer combinaç�
 
 ## Modo 2 — Tradução de jogos
 
-Botão **Tradução de jogos** na barra de ações. O app lê o índice da
-[biblioteca de traduções][lib] e conduz o fluxo:
+Botão **Tradução de jogos** na barra de ações. A tradução **não vem no instalador**
+— o app baixa da [biblioteca de traduções][lib] só o que for do jogo que você usar.
 
-1. **Acha a pasta do jogo** (autodetect ou *Procurar*).
-2. **Pré-requisito** — o app checa se a **base** (o CPDD English patch) está
-   instalada no jogo. Se não estiver, mostra o aviso e um botão que **baixa o
-   instalador OFICIAL do CPDD** (do GitHub da autora) e abre o wizard dele.
-   *O CPDD nunca é hospedado nem redistribuído por este projeto* — ele é
-   distribuído só pela autora ([Lani27](https://github.com/Lani27/lord-of-mysteries-english-patch/releases/latest)
-   / Discord CPDD). No wizard: aponte a pasta do jogo → pré-check → **Install English**.
-3. **Instalar** — cria só `Saved/Mods/lua/mods/tl_translate/` + `cpdd_user_settings.lua`
+### Passo a passo
+
+1. **Aponte a pasta do jogo** em **Procurar** — a raiz que termina em `…\Game\C7`
+   (contém `Binaries\Win64\C7-Win64-Shipping.exe`). Fica **salva** pras próximas
+   vezes. Os botões abaixo só liberam depois que a pasta certa é reconhecida.
+2. **Instalar base (CPDD English patch)** — pré-requisito. O app checa se o CPDD
+   está no jogo; se não estiver, clique em **Baixar Patch CPDD English direto**
+   (baixa o instalador **oficial da autora** e abre o wizard) — ou **Abrir GitHub
+   do CPDD**. No wizard do CPDD: aponte a pasta do jogo → espere o pré-check →
+   **Install English**. Depois volte e clique em **Verificar**.
+   *O CPDD nunca é hospedado nem redistribuído aqui — só baixamos o mesmo `.exe`
+   da [release da Lani27](https://github.com/Lani27/lord-of-mysteries-english-patch/releases/latest).*
+3. **Baixar** — baixa a tradução PT-BR (uns 100 arquivos `.lua`, ~37 MB) pra
+   `%LOCALAPPDATA%\AMS Translator\traducoes\`.
+4. **Instalar** — cria só `Saved\Mods\lua\mods\tl_translate\` + `cpdd_user_settings.lua`
    no jogo. **Não modifica nenhum arquivo do CPDD.**
-4. **Restaurar original** — remove o mod; o jogo volta ao CPDD puro.
+5. **Reinicie o jogo.** Espere ~30 s na tela inicial — o texto vai virando PT.
+6. **Restaurar original** — remove o mod (`tl_translate\` + `cpdd_user_settings.lua`);
+   o jogo volta ao CPDD puro (inglês). Reinicie o jogo.
+
+O status no diálogo mostra sempre onde você está: `✓ pasta do jogo`,
+`✓ CPDD detectado` / `✗ CPDD não encontrado`, e o passo seguinte da tradução.
+
+### Zerar tudo (voltar o jogo ao original)
+
+1. **Restaurar original** no app (ou apague `…\C7\Saved\Mods\lua\mods\tl_translate\`
+   e `…\lua\cpdd_user_settings.lua`).
+2. Pra tirar **o CPDD** também: apague/renomeie a pasta `…\C7\Saved\Mods\` inteira
+   e clique em **Reparar** no launcher do jogo (restaura o `pakchunk0-Windows.pak`
+   que o CPDD altera).
 
 ### Lord of Mysteries — ponte 中文 → EN → PT-BR
 
@@ -82,6 +102,7 @@ O jogo é em chinês. O **[CPDD English patch](https://github.com/Lani27/lord-of
 parte difícil. Este pacote traduz **o inglês do CPDD → PT-BR em runtime**, via um
 mod (`tl_translate`) carregado pelo LOMModLoader — sem tocar nos arquivos do CPDD.
 Se o CPDD atualizar, basta reabri-lo pelo wizard; a tradução PT continua funcionando.
+Cobertura atual ~85% (diálogo, missões, menus, skills, conquistas, exploração).
 
 ---
 

@@ -210,9 +210,22 @@ def _brace_slice(text: str, table_name: str) -> tuple[int, int] | None:
     return None
 
 
-def _init_targets(text: str) -> list[tuple[int, int, str]]:
-    """Todos os valores EN traduzíveis do Init.lua: (offset_ini, offset_fim, en)."""
-    spans: list[tuple[int, int, str]] = []
+# ajustes manuais de rótulo de menu (só na tabela shortMenuLabels — esses termos
+# curtos NÃO devem vazar pro resto do jogo). en -> pt.
+_MENU_LABELS = {
+    "Gear": "Sets",
+    "Explore": "Mundo",
+    "DarkCity": "Exploracao",
+    "Pathway": "Divino",
+    "Skills": "Skills",
+    "Dungeon": "Dungeon",
+}
+_MENU_TABLE = "shortMenuLabels"
+
+
+def _init_targets(text: str) -> list[tuple[int, int, str, str]]:
+    """Valores EN traduzíveis do Init.lua: (offset_ini, offset_fim, en, tabela)."""
+    spans: list[tuple[int, int, str, str]] = []
     for name, kind in INIT_TABLES:
         sl = _brace_slice(text, name)
         if not sl:
@@ -223,7 +236,7 @@ def _init_targets(text: str) -> list[tuple[int, int, str]]:
             for m in _PAIR.finditer(chunk):
                 s = m.group(2)
                 spans.append((a + m.start(2), a + m.end(2),
-                              luatable.unescape(s[1:-1])))
+                              luatable.unescape(s[1:-1]), name))
         else:
             subranges = [(0, len(chunk))]
             if kind == "nested":
@@ -233,7 +246,7 @@ def _init_targets(text: str) -> list[tuple[int, int, str]]:
                 for m in _KV_VALUE.finditer(chunk, sa, sb):
                     s = m.group(1)
                     spans.append((a + m.start(1), a + m.end(1),
-                                  luatable.unescape(s[1:-1])))
+                                  luatable.unescape(s[1:-1]), name))
     return sorted(spans)
 
 
@@ -375,7 +388,7 @@ class PatchTranslator:
 
         entries = self.parse()
         init_txt = ""
-        init_spans: list[tuple[int, int, str]] = []
+        init_spans: list[tuple[int, int, str, str]] = []
         if "init" in targets and self.init_path.exists():
             init_txt = self._init_source().read_text("utf-8", errors="replace")
             init_spans = _init_targets(init_txt)
@@ -387,7 +400,7 @@ class PatchTranslator:
             if en not in seen and self._translatable(en):
                 seen.add(en)
                 uniq.append(en)
-        for _a, _b, en in init_spans:
+        for _a, _b, en, _t in init_spans:
             if en not in seen and self._translatable(en):
                 seen.add(en)
                 uniq.append(en)
@@ -431,8 +444,11 @@ class PatchTranslator:
 
         n = 0
         out = txt
-        for a, b, en in sorted(spans, reverse=True):        # direita → esquerda
-            pt = self._cache.get(en)
+        for a, b, en, table in sorted(spans, reverse=True):     # direita → esquerda
+            if table == _MENU_TABLE and en in _MENU_LABELS:
+                pt = _MENU_LABELS[en]
+            else:
+                pt = self._cache.get(en)
             if pt and pt != en:
                 out = out[:a] + '"' + luatable.escape(pt) + '"' + out[b:]
                 n += 1
@@ -501,7 +517,7 @@ class PatchTranslator:
                 spans = _init_targets(
                     self._init_source().read_text("utf-8", errors="replace"))
                 total += len(spans)
-                uniq |= {en for _a, _b, en in spans if self._translatable(en)}
+                uniq |= {en for _a, _b, en, _t in spans if self._translatable(en)}
             translated = sum(1 for en in uniq if en in self._cache)
             pending = len(uniq) - translated
         except Exception:  # noqa: BLE001

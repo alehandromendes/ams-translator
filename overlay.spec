@@ -4,6 +4,7 @@
 @connects  pyinstaller overlay.spec   (gera dist/Tradutor de Legendas/)
 """
 import certifi
+from pathlib import Path
 from PyInstaller.utils.hooks import collect_all
 
 datas = [
@@ -13,15 +14,24 @@ datas = [
     ("overlay/gamefill/game_terms.csv", "overlay/gamefill"),
     ("overlay/gamefill/fixes.csv", "overlay/gamefill"),
     ("overlay/gamefill/translations_index.json", "overlay/gamefill"),
+    ("overlay/gamefill/skill_overrides.csv", "overlay/gamefill"),
+    # mod tl_translate (Init.lua + hotpatch.lua + cpdd_user_settings.lua)
+    ("overlay/gamefill/luamod/Init.lua", "overlay/gamefill/luamod"),
+    ("overlay/gamefill/luamod/hotpatch.lua", "overlay/gamefill/luamod"),
+    ("overlay/gamefill/luamod/cpdd_user_settings.lua", "overlay/gamefill/luamod"),
+    # traducao PT pre-construida + memoria de traducao
+    ("overlay/gamefill/prebuilt", "overlay/gamefill/prebuilt"),
     (certifi.where(), "."),          # -> _internal/cacert.pem  (SSL do requests)
 ]
+if Path("gamefill/patch_pt_cache.json").exists():
+    datas.append(("gamefill/patch_pt_cache.json", "gamefill"))
 binaries = []
 hiddenimports = [
     "PySide6.QtSvg", "certifi",
     # importados sob demanda pelo botão "Traduzir jogo"
     "overlay.game_translate",
     "overlay.gamefill", "overlay.gamefill.patch_pt", "overlay.gamefill.library",
-    "overlay.gamefill.core", "overlay.gamefill.luatable",
+    "overlay.gamefill.core", "overlay.gamefill.luatable", "overlay.gamefill.gamepatch",
 ]
 
 # rapidocr + onnxruntime trazem modelos .onnx e DLLs — precisa coletar tudo.

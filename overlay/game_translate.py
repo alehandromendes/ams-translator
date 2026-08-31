@@ -197,10 +197,16 @@ class _GameCard(QFrame):
                 self.refresh,
                 done_msg="Tradução baixada. Clique em Instalar pra aplicar no jogo.")
         else:
+            def _do_install(**kw):
+                lib.install(self.game, self.root, **kw)
+                # camada tl_translate (mod + PT pré-construído + sweep)
+                try:
+                    from .gamefill import gamepatch
+                    gamepatch.install(self.root)
+                except Exception as e:  # noqa: BLE001
+                    print("gamepatch.install:", e)
             self.dlg._run_job(
-                "Instalando…",
-                lambda **kw: lib.install(self.game, self.root, **kw),
-                self.refresh,
+                "Instalando…", _do_install, self.refresh,
                 done_msg="Tradução instalada. Reinicie o jogo pra ver.")
 
     def _install_dependency(self, dep: "library.Dependency") -> None:
@@ -344,6 +350,11 @@ class GameTranslateDialog(QDialog):
         ) != QMessageBox.StandardButton.Yes:
             return
         n = self.lib.restore(card.game, card.root)
+        try:
+            from .gamefill import gamepatch
+            gamepatch.restore(card.root)
+        except Exception as e:  # noqa: BLE001
+            print("gamepatch.restore:", e)
         QMessageBox.information(self, "Restaurar",
                                 f"{n} arquivo(s) restaurado(s). Reinicie o jogo."
                                 if n else "Não havia backup pra restaurar.")

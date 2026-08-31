@@ -9,59 +9,50 @@ H.resweep_on = true
 local nmod = 0
 for _ in pairs(package.loaded) do nmod = nmod + 1 end
 
--- ===== PASSE DE LOGIN: roda cedo, traduz a tela de selecao de personagem =====
-if not _G.__login_done then
-  local en2pt0 = T.en2pt
+-- ===== PASSE DE LOGIN: roda TODA vez ate estabilizar. Varre package.loaded
+-- INTEIRO atras dos textos exatos da tela de login/selecao de personagem. =====
+do
   local LOGIN_OVR = {
-    ["Select Character"] = "Selecionar Personagem",
-    ["Enter World"] = "Entrar no Mundo dos Beyounders",
-    ["Enter the World"] = "Entrar no Mundo dos Beyounders",
+    ["Select Character"] = "Selecionar Personagem", ["Character Select"] = "Selecionar Personagem",
+    ["Enter World"] = "Entre no mundo dos Beyounders",
+    ["Enter the World"] = "Entre no mundo dos Beyounders",
+    ["Enter the Extraordinary World"] = "Entre no mundo dos Beyounders",
+    ["Enter Extraordinary World"] = "Entre no mundo dos Beyounders",
+    ["\232\191\155\229\133\165\233\157\158\229\135\161\228\184\150\231\149\140"] = "Entre no mundo dos Beyounders",
     ["Create Character"] = "Criar Personagem", ["Delete Character"] = "Excluir Personagem",
+    ["Create Role"] = "Criar Personagem", ["Delete Role"] = "Excluir Personagem",
     ["Connect to Server"] = "Conectando ao servidor", ["Connecting"] = "Conectando",
-    ["Reconnecting"] = "Reconectando", ["Loading"] = "Carregando",
-    ["Verifying resource files"] = "Verificando arquivos", ["Music"] = "Música",
-    ["Repair"] = "Reparar", ["Feedback"] = "Feedback", ["Login"] = "Entrar",
-    ["Exit"] = "Sair", ["Announcement"] = "Aviso", ["Server"] = "Servidor",
+    ["Connecting..."] = "Conectando...", ["Reconnecting"] = "Reconectando",
+    ["Reconnecting..."] = "Reconectando...", ["Loading"] = "Carregando",
+    ["Loading..."] = "Carregando...", ["Verifying resource files"] = "Verificando arquivos",
+    ["Music"] = "Musica", ["Repair"] = "Reparar", ["Feedback"] = "Feedback",
+    ["Login"] = "Entrar", ["Log in"] = "Entrar", ["Exit"] = "Sair",
+    ["Announcement"] = "Aviso", ["Server"] = "Servidor", ["Server List"] = "Lista de Servidores",
+    ["Start Game"] = "Iniciar Jogo", ["Confirm"] = "Confirmar", ["Cancel"] = "Cancelar",
   }
-  local hit = 0
+  local hit = _G.__login_hit or 0
   local seen0 = {}
   local function lw(t, d)
-    if type(t) ~= "table" or seen0[t] or d > 7 then return end
+    if type(t) ~= "table" or seen0[t] or d > 8 then return end
     seen0[t] = true
     pcall(function()
       for k, v in pairs(t) do
         local ks = tostring(k)
-        if ks ~= "class" and ks:sub(1,2) ~= "__" then
-          if type(v) == "string" and #v > 1 and #v < 200 then
+        if ks ~= "class" and ks:sub(1, 2) ~= "__" then
+          if type(v) == "string" then
             local p = LOGIN_OVR[v]
-            if not p and v:find(" ") then p = en2pt0(v) end
             if p and p ~= v then t[k] = p; hit = hit + 1 end
-          elseif type(v) == "table" then lw(v, d + 1)
-          end
+          elseif type(v) == "table" then lw(v, d + 1) end
         end
       end
     end)
   end
-  for name, mod in pairs(package.loaded) do
-    if type(mod) == "table" and type(name) == "string" then
-      local nl = name:lower()
-      if nl:find("login") or nl:find("selectrole") or nl:find("charselect")
-         or nl:find("createrole") or nl:find("launch") or nl:find("startup")
-         or nl:find("rolelist") or nl:find("serverselect") then
-        pcall(lw, mod, 0)
-      end
-    end
+  for _, mod in pairs(package.loaded) do
+    if type(mod) == "table" then pcall(lw, mod, 0) end
   end
-  if type(_G.Game) == "table" then
-    for k, v in pairs(_G.Game) do
-      if type(v) == "table" and type(k) == "string"
-         and (k:find("Login") or k:find("Role") or k:find("Launch")) then
-        pcall(lw, v, 0)
-      end
-    end
-  end
-  rep["hp_login"] = "login pass hit=" .. hit .. " (nmod=" .. nmod .. ")"
-  if hit > 0 or nmod > 200 then _G.__login_done = true end
+  if type(_G.Game) == "table" then pcall(lw, _G.Game, 0) end
+  _G.__login_hit = hit
+  rep["hp_login"] = "login hits=" .. hit .. " (nmod=" .. nmod .. ")"
 end
 
 if nmod < 180 then rep["hp"] = "carregando (" .. nmod .. ")"; return "wait" end
@@ -233,11 +224,11 @@ local OVR = {
   ["Validity Period"] = "Item expira em:", ["Valid Period"] = "Item expira em:",
   ["Discard"] = "Descartar", ["Support to earn points"] = "Suporte para ganhar pontos",
   -- lote 31/08
-  ["Enter the Extraordinary World"] = "Entrar no mundo dos Beyounders",
-  ["Enter Extraordinary World"] = "Entrar no mundo dos Beyounders",
-  ["Entre no mundo extraordinário"] = "Entrar no mundo dos Beyounders",
+  ["Enter the Extraordinary World"] = "Entre no mundo dos Beyounders",
+  ["Enter Extraordinary World"] = "Entre no mundo dos Beyounders",
+  ["Entre no mundo extraordinário"] = "Entre no mundo dos Beyounders",
   ["Entre no mundo extraordinario"] = "Entrar no mundo dos Beyounders",
-  ["Enter World"] = "Entrar no mundo dos Beyounders",
+  ["Enter World"] = "Entre no mundo dos Beyounders",
   ["Entra Blackhorn"] = "Entrar em Blackhorn", ["Enter Blackhorn"] = "Entrar em Blackhorn",
   ["Enter Blackthorn"] = "Entrar em Blackthorn", ["Entra Blackthorn"] = "Entrar em Blackthorn",
   ["Fritar"] = "Frye", ["Fry"] = "Frye",

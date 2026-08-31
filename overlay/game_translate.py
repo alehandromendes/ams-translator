@@ -208,37 +208,26 @@ class _GameCard(QFrame):
                 done_msg="Tradução instalada. Reinicie o jogo pra ver.")
 
     def _install_dependency(self, dep: "library.Dependency") -> None:
+        import webbrowser
         m = QMessageBox(self.dlg)
         m.setWindowTitle(f"Pré-requisito: {dep.name}")
         m.setIcon(QMessageBox.Icon.Warning)
+        m.setTextFormat(Qt.TextFormat.RichText)
         m.setText(
-            f"A tradução PT precisa do <b>{dep.name}</b> instalado no jogo primeiro.\n\n"
-            f"{dep.note}\n\n"
-            f"Posso baixar o instalador OFICIAL agora (do GitHub da autora, "
-            f"{dep.page_url}) e abrir o wizard dele pra você?")
-        m.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
-        if m.exec() != QMessageBox.StandardButton.Yes:
-            return
-
-        def after(err_ignored=None) -> None:
-            path = getattr(self.dlg, "_dep_path", None)
-            if path and Path(path).exists():
-                library.Library.run_installer(Path(path))
-                QMessageBox.information(
-                    self.dlg, dep.name,
-                    "O instalador do CPDD abriu. No wizard dele:\n"
-                    "1. aponte a pasta do jogo (ou Auto-detect)\n"
-                    "2. espere o pré-check\n"
-                    "3. Install English\n\n"
-                    "Quando terminar, volte aqui — o botão vira \"Baixar\".")
-            self.refresh()
-
-        def grab(progress_cb=None, **_) -> None:
-            self.dlg._dep_path = str(
-                self.dlg.lib.fetch_dependency_installer(self.game, progress_cb))
-
-        self.dlg._run_job(f"Baixando o instalador do {dep.name}…", grab, after,
-                          done_msg="")
+            f"A tradução PT roda <b>em cima do {dep.name}</b> — ele precisa estar "
+            f"instalado no jogo primeiro.<br><br>"
+            f"Vou abrir a página oficial da autora. Lá:<br>"
+            f"<b>1.</b> baixe o instalador (<code>{dep.asset_glob}</code>)<br>"
+            f"<b>2.</b> rode: aponte a pasta do jogo → pré-check → <b>Install English</b><br>"
+            f"<b>3.</b> volte aqui e clique em <b>Instalar</b><br><br>"
+            f"<i>O {dep.name} é distribuído só pela autora — este app nunca o "
+            f"redistribui.</i>")
+        ok = m.addButton("Abrir GitHub do CPDD", QMessageBox.ButtonRole.AcceptRole)
+        m.addButton("Cancelar", QMessageBox.ButtonRole.RejectRole)
+        m.exec()
+        if m.clickedButton() is ok:
+            webbrowser.open(dep.page_url)
+        self.refresh()
 
 
 class GameTranslateDialog(QDialog):
@@ -265,6 +254,20 @@ class GameTranslateDialog(QDialog):
         head.addWidget(self.src_lbl, 1)
         head.addWidget(b_reload)
         root.addLayout(head)
+
+        steps = QLabel(
+            "<b>Como instalar</b> (Lord of Mysteries)<br>"
+            "<b>1.</b> Instale o <b>CPDD English patch</b> — clique em "
+            "<i>Instalar base</i> (abre o GitHub da autora; baixe e rode o "
+            "instalador dela: pasta do jogo → pré-check → <i>Install English</i>).<br>"
+            "<b>2.</b> Volte aqui e clique em <b>Instalar</b> — aplica a tradução PT "
+            "(só cria uma pasta no jogo, não mexe no CPDD).<br>"
+            "<b>3.</b> Reinicie o jogo. Para desfazer: <i>Restaurar original</i>.")
+        steps.setWordWrap(True)
+        steps.setObjectName("RowSub")
+        steps.setStyleSheet("padding:8px 10px; background:rgba(255,255,255,0.04);"
+                            "border-radius:8px;")
+        root.addWidget(steps)
 
         self.cards = QVBoxLayout()
         self.cards.setSpacing(10)

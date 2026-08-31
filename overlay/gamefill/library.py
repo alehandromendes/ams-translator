@@ -28,9 +28,9 @@ DEPS_DIR = TRANSLATIONS_DIR / "_deps"
 BACKUP_DIR = DATA_DIR / "gamefill" / "backup"
 
 INDEX_URL = ("https://raw.githubusercontent.com/alehandromendes/"
-             "tradutor-legendas-traducoes/main/index.json")
+             "ams-translator-traducoes/main/index.json")
 RAW_BASE = ("https://raw.githubusercontent.com/alehandromendes/"
-            "tradutor-legendas-traducoes/main/")
+            "ams-translator-traducoes/main/")
 
 
 @dataclass

@@ -232,5 +232,5 @@ original é salvo antes de instalar** e restaurado em um clique.
 
 [MIT](LICENSE) © 2026 Alehandro Mendes. Este projeto não redistribui conteúdo dos jogos.
 
-[lib]: https://github.com/alehandromendes/tradutor-legendas-traducoes
+[lib]: https://github.com/alehandromendes/ams-translator-traducoes
 [rel]: https://github.com/alehandromendes/ams-translator/releases/latest

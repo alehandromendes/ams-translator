@@ -1,7 +1,7 @@
 {
   "schema": 2,
   "updated": "2026-08-31",
-  "note": "Índice embutido (fallback). O app tenta primeiro o repo tradutor-legendas-traducoes no GitHub.",
+  "note": "Índice embutido (fallback). O app tenta primeiro o repo ams-translator-traducoes no GitHub.",
   "games": [
     {
       "id": "lord-of-mysteries",

@@ -375,7 +375,7 @@ class GameTranslateDialog(QDialog):
                 w.deleteLater()
         games, origin = library.load_index()
         self.src_lbl.setText({
-            "github": "Fonte: GitHub · alehandromendes/tradutor-legendas-traducoes",
+            "github": "Fonte: GitHub · alehandromendes/ams-translator-traducoes",
             "local": "Fonte: índice embutido (offline) — GitHub indisponível",
             "vazio": "Nenhuma tradução encontrada",
         }.get(origin, origin))

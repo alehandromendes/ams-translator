@@ -35,7 +35,424 @@
         "required": true,
         "note": "PRÉ-REQUISITO. A tradução PT roda EM CIMA do CPDD English patch: ele faz 中文→inglês e instala a ponte de carregamento no .pak; nós só traduzimos o inglês dele pra PT em runtime, sem tocar nos arquivos dele. O CPDD é distribuído só pela autora (GitHub/Discord) — este projeto NUNCA redistribui, só baixa o instalador OFICIAL dela pra você. No wizard do CPDD: 1) aponte a pasta do jogo (…/Game/C7) ou Auto-detect  2) espere o pré-check  3) Install English. Depois volte aqui e clique em Instalar."
       },
-      "files": []
+      "files": [
+        {
+          "src": "lord-of-mysteries/pt/Data_Config_StringConst_Language_zhs.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Data_Config_StringConst_Language_zhs.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Data_Excel_LanguageData_StringDB_CN_Data.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Data_Excel_LanguageData_StringDB_CN_Data.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Data_Excel_LanguageData_StringDB_CN_Data_achievement.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Data_Excel_LanguageData_StringDB_CN_Data_achievement.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Data_Excel_LanguageData_StringDB_CN_Data_asidetalk.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Data_Excel_LanguageData_StringDB_CN_Data_asidetalk.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Data_Excel_LanguageData_StringDB_CN_Data_aura.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Data_Excel_LanguageData_StringDB_CN_Data_aura.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Data_Excel_LanguageData_StringDB_CN_Data_beckland.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Data_Excel_LanguageData_StringDB_CN_Data_beckland.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Data_Excel_LanguageData_StringDB_CN_Data_buffappear.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Data_Excel_LanguageData_StringDB_CN_Data_buffappear.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Data_Excel_LanguageData_StringDB_CN_Data_buffdata.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Data_Excel_LanguageData_StringDB_CN_Data_buffdata.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Data_Excel_LanguageData_StringDB_CN_Data_debug.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Data_Excel_LanguageData_StringDB_CN_Data_debug.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Data_Excel_LanguageData_StringDB_CN_Data_gossip.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Data_Excel_LanguageData_StringDB_CN_Data_gossip.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Data_Excel_LanguageData_StringDB_CN_Data_guide.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Data_Excel_LanguageData_StringDB_CN_Data_guide.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Data_Excel_LanguageData_StringDB_CN_Data_itemgift.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Data_Excel_LanguageData_StringDB_CN_Data_itemgift.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Data_Excel_LanguageData_StringDB_CN_Data_itemlife.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Data_Excel_LanguageData_StringDB_CN_Data_itemlife.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Data_Excel_LanguageData_StringDB_CN_Data_itemnormal.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Data_Excel_LanguageData_StringDB_CN_Data_itemnormal.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Data_Excel_LanguageData_StringDB_CN_Data_itemoutlook.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Data_Excel_LanguageData_StringDB_CN_Data_itemoutlook.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Data_Excel_LanguageData_StringDB_CN_Data_itemtask.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Data_Excel_LanguageData_StringDB_CN_Data_itemtask.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Data_Excel_LanguageData_StringDB_CN_Data_lettertext.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Data_Excel_LanguageData_StringDB_CN_Data_lettertext.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Data_Excel_LanguageData_StringDB_CN_Data_loading.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Data_Excel_LanguageData_StringDB_CN_Data_loading.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Data_Excel_LanguageData_StringDB_CN_Data_main.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Data_Excel_LanguageData_StringDB_CN_Data_main.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Data_Excel_LanguageData_StringDB_CN_Data_maintask.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Data_Excel_LanguageData_StringDB_CN_Data_maintask.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Data_Excel_LanguageData_StringDB_CN_Data_manor.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Data_Excel_LanguageData_StringDB_CN_Data_manor.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Data_Excel_LanguageData_StringDB_CN_Data_monsterskill.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Data_Excel_LanguageData_StringDB_CN_Data_monsterskill.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Data_Excel_LanguageData_StringDB_CN_Data_newbietask.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Data_Excel_LanguageData_StringDB_CN_Data_newbietask.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Data_Excel_LanguageData_StringDB_CN_Data_newspaper.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Data_Excel_LanguageData_StringDB_CN_Data_newspaper.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Data_Excel_LanguageData_StringDB_CN_Data_nocamera.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Data_Excel_LanguageData_StringDB_CN_Data_nocamera.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Data_Excel_LanguageData_StringDB_CN_Data_oldtalk.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Data_Excel_LanguageData_StringDB_CN_Data_oldtalk.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Data_Excel_LanguageData_StringDB_CN_Data_othertalk.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Data_Excel_LanguageData_StringDB_CN_Data_othertalk.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Data_Excel_LanguageData_StringDB_CN_Data_sidetask.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Data_Excel_LanguageData_StringDB_CN_Data_sidetask.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Data_Excel_LanguageData_StringDB_CN_Data_skill.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Data_Excel_LanguageData_StringDB_CN_Data_skill.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Data_Excel_LanguageData_StringDB_CN_Data_skill1.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Data_Excel_LanguageData_StringDB_CN_Data_skill1.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Data_Excel_LanguageData_StringDB_CN_Data_skill2.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Data_Excel_LanguageData_StringDB_CN_Data_skill2.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Data_Excel_LanguageData_StringDB_CN_Data_skill3.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Data_Excel_LanguageData_StringDB_CN_Data_skill3.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Data_Excel_LanguageData_StringDB_CN_Data_spellfield.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Data_Excel_LanguageData_StringDB_CN_Data_spellfield.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Data_Excel_LanguageData_StringDB_CN_Data_talk.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Data_Excel_LanguageData_StringDB_CN_Data_talk.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Data_Excel_LanguageData_StringDB_CN_Data_talkother.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Data_Excel_LanguageData_StringDB_CN_Data_talkother.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Data_Excel_LanguageData_StringDB_CN_Data_tingen.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Data_Excel_LanguageData_StringDB_CN_Data_tingen.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Data_Excel_LanguageData_StringDB_CN_Data_tingentalk.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Data_Excel_LanguageData_StringDB_CN_Data_tingentalk.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Data_Excel_LanguageData_StringDB_CN_Data_traingame.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Data_Excel_LanguageData_StringDB_CN_Data_traingame.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Data_Excel_LanguageData_StringDB_CN_Data_trap.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Data_Excel_LanguageData_StringDB_CN_Data_trap.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Gameplay_BattleSystem_DamageProcessConst.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Gameplay_BattleSystem_DamageProcessConst.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Gameplay_CommonDefines_C7_Game_Const.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Gameplay_CommonDefines_C7_Game_Const.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Gameplay_CommonDefines_ViewAnimConst.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Gameplay_CommonDefines_ViewAnimConst.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Gameplay_CommonDefines_ViewResourceConst.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Gameplay_CommonDefines_ViewResourceConst.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Gameplay_CommonDefines_WorldViewConst.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Gameplay_CommonDefines_WorldViewConst.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Gameplay_Effect_DecalEffectConst.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Gameplay_Effect_DecalEffectConst.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Gameplay_Effect_MaterialEffectConst.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Gameplay_Effect_MaterialEffectConst.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Gameplay_Effect_NiagaraEffectConst.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Gameplay_Effect_NiagaraEffectConst.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Gameplay_LogicSystem_ExploreCollection_ExploreCollectionConst.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Gameplay_LogicSystem_ExploreCollection_ExploreCollectionConst.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Launch_I18n_zh.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Launch_I18n_zh.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Shared_Const.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Shared_Const.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Shared_Const_BeHitConst.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Shared_Const_BeHitConst.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Shared_Const_LimitConst.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Shared_Const_LimitConst.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Shared_Const_ViewControlConst.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Shared_Const_ViewControlConst.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/Shared_language_zhs.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/Shared_language_zhs.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/_en2pt_1.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/_en2pt_1.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/_en2pt_2.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/_en2pt_2.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/_en2pt_3.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/_en2pt_3.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/_en2pt_4.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/_en2pt_4.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/_en2pt_5.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/_en2pt_5.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/_en2pt_6.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/_en2pt_6.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/_en2pt_7.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/_en2pt_7.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/_en2pt_8.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/_en2pt_8.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/_en2pt_9.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/_en2pt_9.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/_en2pt_count.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/_en2pt_count.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/_index.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/_index.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/cpdd_AGG.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/cpdd_AGG.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/cpdd_achievement.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/cpdd_achievement.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/cpdd_asidetalk.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/cpdd_asidetalk.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/cpdd_aura.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/cpdd_aura.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/cpdd_beckland.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/cpdd_beckland.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/cpdd_buffappear.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/cpdd_buffappear.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/cpdd_buffdata.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/cpdd_buffdata.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/cpdd_debug.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/cpdd_debug.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/cpdd_gossip.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/cpdd_gossip.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/cpdd_guide.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/cpdd_guide.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/cpdd_itemgift.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/cpdd_itemgift.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/cpdd_itemlife.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/cpdd_itemlife.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/cpdd_itemnormal.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/cpdd_itemnormal.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/cpdd_itemoutlook.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/cpdd_itemoutlook.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/cpdd_itemtask.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/cpdd_itemtask.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/cpdd_lettertext.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/cpdd_lettertext.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/cpdd_loading.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/cpdd_loading.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/cpdd_main.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/cpdd_main.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/cpdd_maintask.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/cpdd_maintask.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/cpdd_manor.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/cpdd_manor.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/cpdd_monsterskill.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/cpdd_monsterskill.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/cpdd_newbietask.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/cpdd_newbietask.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/cpdd_newspaper.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/cpdd_newspaper.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/cpdd_nocamera.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/cpdd_nocamera.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/cpdd_oldtalk.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/cpdd_oldtalk.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/cpdd_othertalk.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/cpdd_othertalk.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/cpdd_sidetask.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/cpdd_sidetask.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/cpdd_skill.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/cpdd_skill.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/cpdd_skill1.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/cpdd_skill1.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/cpdd_skill2.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/cpdd_skill2.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/cpdd_skill3.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/cpdd_skill3.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/cpdd_spellfield.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/cpdd_spellfield.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/cpdd_tags.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/cpdd_tags.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/cpdd_talk.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/cpdd_talk.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/cpdd_talkother.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/cpdd_talkother.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/cpdd_tingen.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/cpdd_tingen.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/cpdd_tingentalk.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/cpdd_tingentalk.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/cpdd_traingame.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/cpdd_traingame.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/cpdd_trap.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/cpdd_trap.lua"
+        }
+      ]
     }
   ]
 }

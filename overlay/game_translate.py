@@ -24,7 +24,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from . import icons
+from . import config, icons
 from .gamefill import library
 
 
@@ -66,6 +66,13 @@ class _GameCard(QFrame):
         self.dlg = dlg
         self.game = game
         self.root: Path | None = None
+        # pasta salva de uma sessão anterior (por jogo)
+        try:
+            _saved = (config.load().get("game_roots") or {}).get(game.id)
+            if _saved and dlg.lib.is_game_root(game, Path(_saved)):
+                self.root = Path(_saved)
+        except Exception:  # noqa: BLE001
+            pass
 
         outer = QVBoxLayout(self)
         outer.setContentsMargins(14, 12, 14, 12)
@@ -102,6 +109,8 @@ class _GameCard(QFrame):
         self.path = QLineEdit()
         self.path.setPlaceholderText("ex.: C:\\Jogos\\Game\\C7")
         self.path.setReadOnly(True)
+        if self.root:
+            self.path.setText(str(self.root))
         b_browse = QPushButton("Procurar")
         b_browse.clicked.connect(self._browse)
         b_verify = QPushButton("Verificar")
@@ -137,7 +146,21 @@ class _GameCard(QFrame):
             return
         self.root = p
         self.path.setText(d)
+        self._save_root()
         self.refresh()
+
+    def _save_root(self) -> None:
+        """Persiste a pasta do jogo em overlay_config.json (por jogo)."""
+        if not self.root:
+            return
+        try:
+            cfg = config.load()
+            roots = dict(cfg.get("game_roots") or {})
+            roots[self.game.id] = str(self.root)
+            cfg["game_roots"] = roots
+            config.save(cfg)
+        except Exception:  # noqa: BLE001
+            pass
 
     # ------------------------------------------------------------------
     def refresh(self) -> None:
@@ -206,16 +229,16 @@ class _GameCard(QFrame):
             self._install_dependency(dep)
         elif not st["downloaded"]:
             self.dlg._run_job(
-                "Baixando tradução…",
+                f"Baixando a tradução PT ({len(self.game.files)} arquivos)…",
                 lambda **kw: lib.download(self.game, **kw),
                 self.refresh,
                 done_msg="Tradução baixada. Clique em Instalar pra aplicar no jogo.")
         else:
-            # instalação 100% via gamepatch: mod tl_translate + PT pré-construído.
-            # NÃO modifica arquivos do CPDD (o lib.install fazia isso e saiu).
+            # instalação 100% via gamepatch: mod tl_translate + PT baixado.
+            # NÃO modifica arquivos do CPDD.
             def _do_install(**kw):
                 from .gamefill import gamepatch
-                gamepatch.install(self.root)
+                gamepatch.install(self.root, pt_src=lib.game_dir(self.game))
                 lib._mark_installed(self.game, self.root)
             self.dlg._run_job(
                 "Instalando…", _do_install, self.refresh,
@@ -382,21 +405,45 @@ class GameTranslateDialog(QDialog):
         if self.busy or not self._game_cards:
             return
         card = self._game_cards[0]
+        root = card.root
+        if not root or not self.lib.is_game_root(card.game, root):
+            QMessageBox.information(
+                self, "Restaurar original",
+                "Aponte a pasta do jogo primeiro (Procurar / Verificar).")
+            return
         if QMessageBox.question(
             self, "Restaurar original",
-            "Devolver o arquivo original (inglês) do jogo?"
+            "Remover a tradução PT e devolver o jogo ao CPDD original (inglês)?"
         ) != QMessageBox.StandardButton.Yes:
             return
-        n = self.lib.restore(card.game, card.root)
+
+        errs: list[str] = []
+        removed: list[str] = []
+        try:
+            self.lib.restore(card.game, root)
+        except Exception as e:  # noqa: BLE001
+            errs.append(f"biblioteca: {e}")
         try:
             from .gamefill import gamepatch
-            gamepatch.restore(card.root)
+            removed = gamepatch.restore(root)
         except Exception as e:  # noqa: BLE001
-            print("gamepatch.restore:", e)
-        QMessageBox.information(self, "Restaurar",
-                                f"{n} arquivo(s) restaurado(s). Reinicie o jogo."
-                                if n else "Não havia backup pra restaurar.")
+            errs.append(f"gamepatch: {e}")
         card.refresh()
+
+        if errs:
+            QMessageBox.warning(
+                self, "Restaurar",
+                "Não deu pra restaurar tudo:\n" + "\n".join(errs))
+        elif removed:
+            QMessageBox.information(
+                self, "Restaurar",
+                "Removido:\n- " + "\n- ".join(removed)
+                + "\n\nReinicie o jogo — ele volta ao CPDD (inglês).")
+        else:
+            QMessageBox.information(
+                self, "Restaurar",
+                "Nada da tradução PT foi encontrado no jogo — já está no "
+                "original.")
 
     def closeEvent(self, e) -> None:
         if self._job:

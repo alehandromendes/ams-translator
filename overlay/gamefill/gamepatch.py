@@ -74,10 +74,14 @@ def prepare(root: Path) -> None:
     (root / REL_DUMP_DIR / "status").unlink(missing_ok=True)
 
 
-def install(root: Path, progress_cb=None) -> dict:
-    """Instalação direta: mod tl_translate + traduções PT pré-construídas.
+def install(root: Path, progress_cb=None, pt_src=None) -> dict:
+    """Instalação direta: mod tl_translate + traduções PT.
     NÃO modifica nenhum arquivo do CPDD — restaura qualquer modificação prévia
-    (RuntimeTextGemini.lua / Init.lua) e só cria pastas seguras do usuário."""
+    (RuntimeTextGemini.lua / Init.lua) e só cria pastas seguras do usuário.
+
+    pt_src: pasta com os .lua PT já baixados (library.game_dir). Se None, cai no
+    PREBUILT embutido — que só existe em build de dev; no instalador a tradução
+    é baixada."""
     import shutil
     # 1) devolve os arquivos do CPDD ao original (se tiverem sido modificados antes)
     try:
@@ -88,12 +92,18 @@ def install(root: Path, progress_cb=None) -> dict:
     _deploy_mod(root)
     ptdir = root / REL_PT_DIR
     ptdir.mkdir(parents=True, exist_ok=True)
+    src = Path(pt_src) if pt_src else PREBUILT
     n = 0
-    if PREBUILT.is_dir():
-        for f in PREBUILT.iterdir():
-            if f.is_file() and f.name not in ("hotpatch.lua", "apply_status.txt"):
+    if src.is_dir():
+        for f in src.iterdir():
+            if (f.is_file() and f.suffix == ".lua"
+                    and f.name not in ("hotpatch.lua", "apply_status.txt")):
                 shutil.copy2(f, ptdir / f.name)
                 n += 1
+    if n == 0:
+        raise RuntimeError(
+            "nenhum arquivo de tradução encontrado — clique em Baixar primeiro "
+            f"({src})")
     (root / REL_DUMP_DIR).mkdir(parents=True, exist_ok=True)
     (root / REL_DUMP_DIR / "run").unlink(missing_ok=True)   # modo aplicar
     if progress_cb:

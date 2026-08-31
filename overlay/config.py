@@ -84,6 +84,8 @@ DEFAULTS: dict = {
     "reverse_panel_visible": True,
     "reverse_source": "pt",
     "reverse_target": "zh-CN",
+    # pasta de cada jogo escolhida no diálogo "Tradução de jogos": {id: caminho}
+    "game_roots": {},
 }
 
 

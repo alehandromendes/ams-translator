@@ -15,16 +15,15 @@ datas = [
     ("overlay/gamefill/fixes.csv", "overlay/gamefill"),
     ("overlay/gamefill/translations_index.json", "overlay/gamefill"),
     ("overlay/gamefill/skill_overrides.csv", "overlay/gamefill"),
-    # mod tl_translate (Init.lua + hotpatch.lua + cpdd_user_settings.lua)
+    # mod tl_translate: só o scaffolding leve (Init.lua + hotpatch.lua +
+    # cpdd_user_settings.lua). A tradução PT (37 MB, 104 arquivos) e o
+    # patch_pt_cache.json (18 MB) NÃO entram no instalador — o app baixa do
+    # repo tradutor-legendas-traducoes na hora de instalar.
     ("overlay/gamefill/luamod/Init.lua", "overlay/gamefill/luamod"),
     ("overlay/gamefill/luamod/hotpatch.lua", "overlay/gamefill/luamod"),
     ("overlay/gamefill/luamod/cpdd_user_settings.lua", "overlay/gamefill/luamod"),
-    # traducao PT pre-construida + memoria de traducao
-    ("overlay/gamefill/prebuilt", "overlay/gamefill/prebuilt"),
     (certifi.where(), "."),          # -> _internal/cacert.pem  (SSL do requests)
 ]
-if Path("gamefill/patch_pt_cache.json").exists():
-    datas.append(("gamefill/patch_pt_cache.json", "gamefill"))
 binaries = []
 hiddenimports = [
     "PySide6.QtSvg", "certifi",

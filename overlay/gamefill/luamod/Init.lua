@@ -5,14 +5,26 @@
 --   modo dump   : cria _tl_dump/run  ->  grava [id]="texto atual" de cada módulo
 --   modo aplicar: padrão  ->  mescla pt/<modulo>.lua por cima (prioridade alta)
 
-local Loader = _G.LOMModLoader
-if type(Loader) ~= "table" then return {} end
-
 local File = import("LuaFunctionLibrary")
 local Paths = import("BlueprintPathsLibrary")
 local MODS = File.GetFilePath(Paths.ProjectSavedDir()) .. "/Mods/"
 local SELF = MODS .. "lua/mods/tl_translate/"
 local DUMP = MODS .. "lua/_tl_dump/"
+
+-- CANÁRIO: prova que este arquivo executou (PersonalLoad funcionou). Escreve
+-- sempre, antes de qualquer lógica. Se pt/_loaded.txt não aparecer no jogo,
+-- o bootstrap do CPDD não carregou o mod.
+pcall(function()
+  local p = SELF .. "pt/_loaded.txt"
+  local body = "tl_translate Init.lua executou\n"
+  if File.SaveStringContentToFile then
+    pcall(File.SaveStringContentToFile, body, p)
+    pcall(File.SaveStringContentToFile, p, body)
+  end
+end)
+
+local Loader = _G.LOMModLoader
+if type(Loader) ~= "table" then return {} end
 
 local function log(msg)
   -- Warning/Error passam pelo PerformanceMode do CPDD (que suprime Info)

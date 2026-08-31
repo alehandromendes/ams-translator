@@ -598,9 +598,9 @@ end
 rep["hp_lang"] = "langstr hits=" .. tostring(H.lh)
 
 if not H.big_done then
-  -- INCREMENTAL: no máx ~30k nós por passada pra NÃO dar hitch. Como o hot_check
-  -- roda a cada ~2000 ticks, a varredura completa leva alguns segundos de jogo,
-  -- espalhada em frames — sem travar.
+  -- INCREMENTAL: orçamento de nós por passada pra NÃO dar hitch. hot_check roda
+  -- a cada 500 ticks (chunk cacheado, barato), então a varredura completa leva
+  -- ~1 min de jogo espalhada em frames.
   if not H.roots then
     local r = {}
     for name, mod in pairs(package.loaded) do
@@ -615,13 +615,18 @@ if not H.big_done then
       end
     end
     if type(_G.Game) == "table" then r[#r + 1] = _G.Game end
-    H.roots = r; H.ri = 1; H.bf = 0
+    H.roots = r; H.ri = 1; H.bf = 0; H.rtry = 0
   end
-  local BUDGET, spent = 30000, 0
+  local BUDGET, spent = 60000, 0
   while H.ri <= #H.roots and spent < BUDGET do
-    local c, nodes = sweep({ H.roots[H.ri] }, BUDGET - spent)
+    local cap = BUDGET - spent
+    local c, nodes = sweep({ H.roots[H.ri] }, cap)
     H.bf = (H.bf or 0) + c; spent = spent + (nodes or 0)
-    H.ri = H.ri + 1
+    if (nodes or 0) >= cap and H.rtry < 6 then
+      H.rtry = H.rtry + 1        -- root grande: retoma na proxima passada
+      break
+    end
+    H.ri = H.ri + 1; H.rtry = 0
   end
   if H.ri > #H.roots then
     H.big_done = true; H.last_sweep = now; H.roots = nil
@@ -683,7 +688,7 @@ for name, mod in pairs(package.loaded) do
     end
   end
 end
-local c = sweep(roots, 25000)      -- cap baixo: re-sweep frequente mas sem hitch
+local c = sweep(roots, 50000)      -- foco em UI: cap ok, sem hitch
 H.bf = (H.bf or 0) + c
 
 -- probe: captura strings de avanço/sequencia p/ eu ver

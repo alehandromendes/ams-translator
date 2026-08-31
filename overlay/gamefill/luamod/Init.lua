@@ -479,7 +479,9 @@ else
   _G.__hp = _G.__hp or {}
   _G.__hp._dev = _dev
   _G.__hp._dumpdir = DUMP
-  local HP_EVERY = _dev and 300 or 2000
+  -- produção: chunk cacheado (sem I/O), então rodar mais vezes é barato — a
+  -- varredura interna é limitada por orçamento de nós, não dá hitch.
+  local HP_EVERY = _dev and 300 or 500
   local HP_PATH = File.GetFilePath(Paths.ProjectSavedDir())
     .. "/Mods/lua/mods/tl_translate/pt/hotpatch.lua"
   local function hot_check()

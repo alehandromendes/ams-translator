@@ -70,7 +70,10 @@ local DISPLAY_KEY = { Name=1,Title=1,Desc=1,Description=1,Text=1,Content=1,Tip=1
   Tips=1,SubName=1,ShortName=1,Summary=1,Detail=1,Details=1,Label=1,Comment=1,
   Target=1,TargetDesc=1,RewardDesc=1,UIName=1,DisplayName=1,TabName=1,GroupName=1,
   BtnName=1,DescStr=1,NameStr=1,TitleStr=1,ConditionDesc=1,Word=1,TextInfo=1,
-  BubbleText=1,LevelName=1,LevelDesc=1,Nickname=1,pName=1,pDesc=1 }
+  BubbleText=1,LevelName=1,LevelDesc=1,Nickname=1,pName=1,pDesc=1,
+  -- dropdown / selectbox: valor exibido
+  CurText=1,SelectedText=1,curValue=1,ShowText=1,DisplayText=1,OptionText=1,
+  CurrentText=1,SelectText=1,ValueText=1,curText=1,selectedName=1 }
 local SKIP = { class=1,__index=1,__supers=1,receiver=1,sender=1,__hp=1,package=1,
   loaded=1,preload=1,_G=1,["_ENV"]=1,EventDefine=1,eventsV2=1,metatable=1,
   StateName=1,State=1,Type=1,Tag=1,Id=1,ID=1,Key=1,Event=1,EventName=1,
@@ -109,6 +112,10 @@ local OVR = {
   ["Beyonder"] = "Beyonder", ["点击输入"] = "Clique para digitar",
   ["Visual Guide:"] = "Guia Visual:",
   -- menu de estilo/aparencia
+  ["Close"] = "Fechar", ["Open"] = "Abrir", ["On"] = "Ligado", ["Off"] = "Desligado",
+  ["Low"] = "Baixo", ["Medium"] = "Médio", ["High"] = "Alto", ["Ultra"] = "Ultra",
+  ["Auto"] = "Automático", ["Manual"] = "Manual", ["Default"] = "Padrão",
+  ["Ray Tracing"] = "Ray Tracing", ["Graphics Settings"] = "Configurações Gráficas",
   ["Overview"] = "Visão Geral", ["Peripheral"] = "Acessórios", ["Weapon"] = "Arma",
   ["Vehicle"] = "Veículo", ["Body Aura"] = "Aura Corporal", ["Footprints"] = "Pegadas",
   ["Idle"] = "Parado", ["Performance"] = "Atuação", ["Action"] = "Ação",

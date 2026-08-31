@@ -3,7 +3,7 @@
 ; Requer a pasta ..\dist\Tradutor de Legendas\  (gere com build_exe.bat).
 
 #define AppName "Tradutor de Legendas"
-#define AppVersion "1.1.0"
+#define AppVersion "1.1.1"
 #define AppPublisher "Alehandro Mendes"
 #define AppExe "Tradutor de Legendas.exe"
 #define AppUrl "https://github.com/alehandromendes/tradutor-legendas"

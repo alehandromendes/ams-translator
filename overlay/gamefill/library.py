@@ -135,8 +135,10 @@ class Library:
         return TRANSLATIONS_DIR / g.name
 
     def downloaded(self, g: Game) -> bool:
+        if not g.files:
+            return True          # nada a baixar: instalação 100% via gamepatch
         d = self.game_dir(g)
-        return bool(g.files) and all((d / f.name).exists() for f in g.files)
+        return all((d / f.name).exists() for f in g.files)
 
     def download(self, g: Game, progress_cb=None, should_stop=None) -> None:
         d = self.game_dir(g)

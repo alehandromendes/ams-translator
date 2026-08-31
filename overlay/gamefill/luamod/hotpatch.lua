@@ -111,7 +111,12 @@ local OVR = {
   ["Related Notes:"] = "Notas Relacionadas:", ["Sealed Artifact"] = "Artefato Selado",
   ["Beyonder"] = "Beyonder", ["点击输入"] = "Clique para digitar",
   ["Visual Guide:"] = "Guia Visual:",
-  ["Aumentar a favorabilidade"] = "Aumentar vinculo", ["Increase Favorability"] = "Aumentar vinculo",
+  ["Aumentar a favorabilidade"] = "Aumentar vinculo",
+  ["Attack"] = "Ataque", ["Defense"] = "Defesa", ["Health"] = "Vida", ["HP"] = "Vida",
+  ["Chaos"] = "Caos", ["Enlightenment"] = "Iluminacao", ["Pathfinding"] = "Exploracao",
+  ["Speculation"] = "Especulacao", ["Interpretation"] = "Interpretacao",
+  ["Historical Research"] = "Pesquisa Historica", ["Final Damage Bonus"] = "Bonus de Dano Final",
+  ["Final Damage Block"] = "Bloco de Dano Final", ["Final Damage"] = "Dano Final", ["Increase Favorability"] = "Aumentar vinculo",
   ["Increase favorability"] = "Aumentar vinculo", ["Favorability"] = "Vinculo",
   ["Nivel de conexao aumentado"] = "Nivel de vinculo aumentado",
   -- menu de estilo/aparencia

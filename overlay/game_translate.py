@@ -197,14 +197,12 @@ class _GameCard(QFrame):
                 self.refresh,
                 done_msg="Tradução baixada. Clique em Instalar pra aplicar no jogo.")
         else:
+            # instalação 100% via gamepatch: mod tl_translate + PT pré-construído.
+            # NÃO modifica arquivos do CPDD (o lib.install fazia isso e saiu).
             def _do_install(**kw):
-                lib.install(self.game, self.root, **kw)
-                # camada tl_translate (mod + PT pré-construído + sweep)
-                try:
-                    from .gamefill import gamepatch
-                    gamepatch.install(self.root)
-                except Exception as e:  # noqa: BLE001
-                    print("gamepatch.install:", e)
+                from .gamefill import gamepatch
+                gamepatch.install(self.root)
+                lib._mark_installed(self.game, self.root)
             self.dlg._run_job(
                 "Instalando…", _do_install, self.refresh,
                 done_msg="Tradução instalada. Reinicie o jogo pra ver.")

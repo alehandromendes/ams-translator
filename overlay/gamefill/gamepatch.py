@@ -75,9 +75,16 @@ def prepare(root: Path) -> None:
 
 
 def install(root: Path, progress_cb=None) -> dict:
-    """Instalação direta: mod + traduções PT pré-construídas, modo APLICAR.
-    (não precisa dump/build — usa o prebuilt/ que veio no pacote)"""
+    """Instalação direta: mod tl_translate + traduções PT pré-construídas.
+    NÃO modifica nenhum arquivo do CPDD — restaura qualquer modificação prévia
+    (RuntimeTextGemini.lua / Init.lua) e só cria pastas seguras do usuário."""
     import shutil
+    # 1) devolve os arquivos do CPDD ao original (se tiverem sido modificados antes)
+    try:
+        patch_pt.PatchTranslator(root / "Saved/Mods").restore()
+    except Exception:  # noqa: BLE001
+        pass
+    # 2) mod em pasta segura do usuário
     _deploy_mod(root)
     ptdir = root / REL_PT_DIR
     ptdir.mkdir(parents=True, exist_ok=True)

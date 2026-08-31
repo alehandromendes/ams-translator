@@ -230,6 +230,15 @@ class Library:
     def installed(self, g: Game) -> bool:
         return (BACKUP_DIR / g.id / ".installed.json").exists()
 
+    def _mark_installed(self, g: Game, root: Path) -> None:
+        (BACKUP_DIR / g.id).mkdir(parents=True, exist_ok=True)
+        (BACKUP_DIR / g.id / ".installed.json").write_text(json.dumps({
+            "id": g.id, "root": str(root),
+            "at": _dt.datetime.now().isoformat(timespec="seconds"),
+            "files": [f.dest for f in g.files],
+            "via": "gamepatch",
+        }, ensure_ascii=False, indent=1), "utf-8")
+
     def install(self, g: Game, root: Path, progress_cb=None, should_stop=None) -> None:
         root = Path(root)
         src_dir = self.game_dir(g)

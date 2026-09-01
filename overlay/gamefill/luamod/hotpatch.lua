@@ -304,7 +304,7 @@ end
 -- onde precisa; a maioria é literal.
 local _GLOSS = {
   { "Magic Mirror of Despair", "Espelho Mágico do Desespero" },
-  { "Tingen in the Mirror", "Tingen no Espelho" },
+  { "Tingen in the Mirror", "Tingen espelhada" },
   { "Knowledge Crown", "Coroa do Conhecimento" },
   { "Crown of Knowledge", "Coroa do Conhecimento" },
   { "Sealed Artifact", "Artefato Selado" },

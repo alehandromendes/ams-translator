@@ -9,31 +9,27 @@ H.resweep_on = true
 local nmod = 0
 for _ in pairs(package.loaded) do nmod = nmod + 1 end
 
--- ===== PASSE DE LOGIN: roda TODA vez ate estabilizar. Varre package.loaded
--- INTEIRO atras dos textos exatos da tela de login/selecao de personagem. =====
-do
+-- ===== PASSE DE LOGIN — MÍNIMO E SEGURO =====
+-- SÓ 4 frases longas e inequívocas da tela inicial. NADA de palavra curta
+-- (Loading/Server/Exit/Confirm/...) — o jogo usa essas como enum/estado e
+-- traduzir causava crash (NewHeadInfo.lua:436 attempt to index nil).
+-- Roda só até estabilizar (4 ticks sem novo hit) e para.
+if not H.login_stable then
   local LOGIN_OVR = {
-    ["Select Character"] = "Selecionar Personagem", ["Character Select"] = "Selecionar Personagem",
-    ["Enter World"] = "Entre no mundo dos Beyounders",
-    ["Enter the World"] = "Entre no mundo dos Beyounders",
     ["Enter the Extraordinary World"] = "Entre no mundo dos Beyounders",
     ["Enter Extraordinary World"] = "Entre no mundo dos Beyounders",
+    ["Enter the World"] = "Entre no mundo dos Beyounders",
+    ["Enter World"] = "Entre no mundo dos Beyounders",
     ["\232\191\155\229\133\165\233\157\158\229\135\161\228\184\150\231\149\140"] = "Entre no mundo dos Beyounders",
-    ["Create Character"] = "Criar Personagem", ["Delete Character"] = "Excluir Personagem",
-    ["Create Role"] = "Criar Personagem", ["Delete Role"] = "Excluir Personagem",
-    ["Connect to Server"] = "Conectando ao servidor", ["Connecting"] = "Conectando",
-    ["Connecting..."] = "Conectando...", ["Reconnecting"] = "Reconectando",
-    ["Reconnecting..."] = "Reconectando...", ["Loading"] = "Carregando",
-    ["Loading..."] = "Carregando...", ["Verifying resource files"] = "Verificando arquivos",
-    ["Music"] = "Musica", ["Repair"] = "Reparar", ["Feedback"] = "Feedback",
-    ["Login"] = "Entrar", ["Log in"] = "Entrar", ["Exit"] = "Sair",
-    ["Announcement"] = "Aviso", ["Server"] = "Servidor", ["Server List"] = "Lista de Servidores",
-    ["Start Game"] = "Iniciar Jogo", ["Confirm"] = "Confirmar", ["Cancel"] = "Cancelar",
+    ["Select Character"] = "Selecionar Personagem",
+    ["Character Select"] = "Selecionar Personagem",
+    ["\233\128\137\230\139\169\232\167\146\232\137\178"] = "Selecionar Personagem",
   }
   local hit = _G.__login_hit or 0
+  local before = hit
   local seen0 = {}
   local function lw(t, d)
-    if type(t) ~= "table" or seen0[t] or d > 8 then return end
+    if type(t) ~= "table" or seen0[t] or d > 6 then return end
     seen0[t] = true
     pcall(function()
       for k, v in pairs(t) do
@@ -41,18 +37,27 @@ do
         if ks ~= "class" and ks:sub(1, 2) ~= "__" then
           if type(v) == "string" then
             local p = LOGIN_OVR[v]
-            if p and p ~= v then t[k] = p; hit = hit + 1 end
+            -- anti-enum: não troca se a string também é chave da tabela
+            if p and p ~= v and rawget(t, v) == nil then t[k] = p; hit = hit + 1 end
           elseif type(v) == "table" then lw(v, d + 1) end
         end
       end
     end)
   end
-  for _, mod in pairs(package.loaded) do
-    if type(mod) == "table" then pcall(lw, mod, 0) end
+  for name, mod in pairs(package.loaded) do
+    -- pula sistemas de ator/mundo/head-info (nada de UI de login lá, e é onde
+    -- o crash acontecia)
+    if type(mod) == "table" and type(name) == "string"
+       and not name:find("HeadInfo") and not name:find("Actor")
+       and not name:find("NetEntit") and not name:find("WorldManager")
+       and not name:find("ViewControl") and not name:find("RoleComposite") then
+      pcall(lw, mod, 0)
+    end
   end
-  if type(_G.Game) == "table" then pcall(lw, _G.Game, 0) end
   _G.__login_hit = hit
-  rep["hp_login"] = "login hits=" .. hit .. " (nmod=" .. nmod .. ")"
+  H.login_calm = (hit == before) and ((H.login_calm or 0) + 1) or 0
+  if H.login_calm >= 4 then H.login_stable = true end
+  rep["hp_login"] = "login hits=" .. hit .. " calm=" .. tostring(H.login_calm)
 end
 
 if nmod < 180 then rep["hp"] = "carregando (" .. nmod .. ")"; return "wait" end
@@ -67,9 +72,14 @@ local DISPLAY_KEY = { Name=1,Title=1,Desc=1,Description=1,Text=1,Content=1,Tip=1
   CurrentText=1,SelectText=1,ValueText=1,curText=1,selectedName=1 }
 local SKIP = { class=1,__index=1,__supers=1,receiver=1,sender=1,__hp=1,package=1,
   loaded=1,preload=1,_G=1,["_ENV"]=1,EventDefine=1,eventsV2=1,metatable=1,
-  StateName=1,State=1,Type=1,Tag=1,Id=1,ID=1,Key=1,Event=1,EventName=1,
+  StateName=1,State=1,Type=1,type=1,Tag=1,Id=1,ID=1,Key=1,Event=1,EventName=1,
   Action=1,Cmd=1,Command=1,Anim=1,Animation=1,Bone=1,Socket=1,Path=1,
-  Icon=1,Sound=1,Audio=1,Effect=1,Prefab=1,Asset=1,Res=1,Url=1 }
+  Icon=1,Sound=1,Audio=1,Effect=1,Prefab=1,Asset=1,Res=1,Url=1,
+  -- identificadores que o jogo compara com == (traduzir = crash tipo
+  -- NewHeadInfo.lua:436 attempt to index nil)
+  nodeType=1,NodeType=1,kind=1,Kind=1,Enum=1,ButtonEnum=1,MenuID=1,
+  HeadType=1,headType=1,InfoType=1,NodeName=1,nodeName=1,StatusName=1,
+  Category=1,category=1,Group=1,GroupId=1,groupId=1,Mode=1,mode=1 }
 
 -- overrides curados de labels curtos (o MT erra ou o sweep nao pega)
 local OVR = {
@@ -79,12 +89,12 @@ local OVR = {
   ["Combat"] = "Combate", ["Keybinds"] = "Teclas", ["Camera"] = "Câmera",
   ["Social"] = "Social", ["Account"] = "Conta", ["Vault"] = "Cofre",
   ["Store"] = "Loja", ["Library"] = "Biblioteca", ["Plaza"] = "Praça",
-  ["Level"] = "Nível", ["Exit Game"] = "Sair do Jogo", ["Scene Marker"] = "Marcador de Cena",
+  ["Exit Game"] = "Sair do Jogo", ["Scene Marker"] = "Marcador de Cena",
   ["Teammate Marker"] = "Marcador de Aliado", ["Rally"] = "Reunir",
   ["Confirm exiting the game?"] = "Confirmar saída do jogo?",
   ["Recently Completed"] = "Concluídas Recentemente", ["Plot"] = "Enredo",
   ["Personal"] = "Pessoal", ["Fashion Level"] = "Nível de Moda",
-  ["Achievement Points"] = "Pontos de Conquista", ["Player"] = "Jogador",
+  ["Achievement Points"] = "Pontos de Conquista",
   ["Pathway"] = "Caminho", ["Club"] = "Clube", ["Competition"] = "Competição",
   ["Dungeon"] = "Masmorra", ["Family"] = "Família", ["Castle"] = "Castelo",
   -- menu ESC (HUD middle menu) — rótulos de 1 palavra
@@ -121,7 +131,7 @@ local OVR = {
   ["Roleplay Skill"] = "Habilidade de Interpretacao", ["Finisher Skill"] = "Finalizadora",
   ["Conquest"] = "Conquista", ["Factions"] = "Faccoes", ["Faction"] = "Faccao",
   ["Antigonus Notebook"] = "Caderno Antigonus", ["Caderno Antigono"] = "Caderno Antigonus",
-  ["Caderno Antigonus"] = "Caderno Antigonus", ["Defense"] = "Defesa", ["Health"] = "Vida", ["HP"] = "Vida",
+  ["Caderno Antigonus"] = "Caderno Antigonus", ["Defense"] = "Defesa",
   ["Chaos"] = "Caos", ["Enlightenment"] = "Iluminacao", ["Pathfinding"] = "Exploracao",
   ["Speculation"] = "Especulacao", ["Interpretation"] = "Interpretacao",
   ["Historical Research"] = "Pesquisa Historica", ["Final Damage Bonus"] = "Bonus de Dano Final",
@@ -610,7 +620,11 @@ if not H.big_done then
          and name ~= "jit" and name ~= "ffi" and not SKIP[name]
          and not name:find("Cinematic") and not name:find("Sequence")
          and not name:find("StateMachine") and not name:find("Locomotion")
-         and not name:find("AnimNotify") and not name:find("Behavior") then
+         and not name:find("AnimNotify") and not name:find("Behavior")
+         and not name:find("HeadInfo") and not name:find("Actor")
+         and not name:find("NetEntit") and not name:find("WorldManager")
+         and not name:find("ViewControl") and not name:find("RoleComposite")
+         and not name:find("AvatarFactory") and not name:find("Appearance") then
         r[#r + 1] = mod
       end
     end
@@ -673,13 +687,18 @@ local roots = {}
 if type(_G.Game) == "table" then
   for k, v in pairs(_G.Game) do
     if type(v) == "table" and type(k) == "string"
-       and (k:find("System$") or k:find("HUD") or k:find("Panel") or k:find("Mgr$")) then
+       and (k:find("System$") or k:find("HUD") or k:find("Panel") or k:find("Mgr$"))
+       and not k:find("HeadInfo") and not k:find("Actor")
+       and not k:find("ViewControl") and not k:find("World") then
       roots[#roots + 1] = v
     end
   end
 end
 for name, mod in pairs(package.loaded) do
-  if type(mod) == "table" and type(name) == "string" and #name < 110 then
+  if type(mod) == "table" and type(name) == "string" and #name < 110
+     and not name:find("HeadInfo") and not name:find("Actor")
+     and not name:find("NetEntit") and not name:find("ViewControl")
+     and not name:find("RoleComposite") and not name:find("Appearance") then
     local nl = name:lower()
     if nl:find("panel") or nl:find("_item") or nl:find("_view")
        or nl:find("hud") or nl:find("tips") or nl:find("popup")

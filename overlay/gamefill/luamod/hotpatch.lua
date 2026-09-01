@@ -411,38 +411,57 @@ if not H.menu_seeded then
     end
     return hit
   end
+  local why, scanned, seeded = "?", 0, 0
   pcall(function()
-    if type(debug) ~= "table" or type(debug.getupvalue) ~= "function" then return end
-    local cands = {}
-    -- 1) a classe MenuBtn_Item (o OnRefresh do CPDD fecha sobre shortMenuLabels)
-    for _, nm in ipairs({
-      "Gameplay.LogicSystem.Menu.MenuBtn_Item",
-      "mods.cpdd_runtime_fixes.Init", "cpdd_runtime_fixes.Init",
-    }) do
-      local m = package.loaded[nm]
-      if type(m) == "table" then
-        cands[#cands + 1] = m
-        local sym = rawget(m, (nm:match("([^%.]+)$") or ""))
-        if type(sym) == "table" then cands[#cands + 1] = sym end
+    if type(debug) ~= "table" or type(debug.getupvalue) ~= "function" then
+      why = "sem debug.getupvalue"; return
+    end
+    -- candidatos: hooks do Loader p/ MenuBtn_Item + a classe + módulo CPDD
+    local fns, seenfn = {}, {}
+    local function add_fn(f)
+      if type(f) == "function" and not seenfn[f] then seenfn[f] = true; fns[#fns + 1] = f end
+    end
+    local function harvest(t, d)
+      if type(t) ~= "table" or d > 3 then return end
+      for k, v in pairs(t) do
+        if type(v) == "function" then add_fn(v)
+        elseif type(v) == "table" and d < 3 and k ~= "__index" then harvest(v, d + 1) end
       end
     end
-    local seenfn = {}
-    for _, holder in ipairs(cands) do
-      for _, fn in pairs(holder) do
-        if type(fn) == "function" and not seenfn[fn] then
-          seenfn[fn] = true
-          for i = 1, 90 do
-            local n, v = debug.getupvalue(fn, i)
-            if not n then break end
-            if n == "shortMenuLabels" and type(v) == "table" and not v.__tl_pt then
-              seed_tbl(v); v.__tl_pt = true; H.menu_seeded = true
-            end
-          end
+    local L = _G.LOMModLoader
+    if type(L) == "table" then
+      for _, hk in ipairs({ "Hooks", "AfterLoad", "AfterLoadCallbacks", "Callbacks" }) do
+        local h = rawget(L, hk)
+        if type(h) == "table" then
+          harvest(h["Gameplay.LogicSystem.Menu.MenuBtn_Item"] or {}, 0)
+          harvest(h, 1)   -- varre tudo (raso) — algum hook fecha sobre shortMenuLabels
         end
       end
     end
+    for _, nm in ipairs({ "Gameplay.LogicSystem.Menu.MenuBtn_Item",
+      "mods.cpdd_runtime_fixes.Init", "cpdd_runtime_fixes.Init" }) do
+      harvest(package.loaded[nm] or {}, 0)
+    end
+    -- percorre upvalues recursivamente (função -> função -> tabela shortMenuLabels)
+    local seenup = {}
+    local function dig(f, d)
+      if type(f) ~= "function" or seenup[f] or d > 4 then return end
+      seenup[f] = true; scanned = scanned + 1
+      for i = 1, 120 do
+        local n, v = debug.getupvalue(f, i)
+        if not n then break end
+        if n == "shortMenuLabels" and type(v) == "table" and not v.__tl_pt then
+          seeded = seeded + seed_tbl(v); v.__tl_pt = true
+        elseif type(v) == "function" then dig(v, d + 1)
+        end
+      end
+    end
+    for _, f in ipairs(fns) do dig(f, 0) end
+    if seeded > 0 then H.menu_seeded = true; why = "ok"
+    elseif scanned == 0 then why = "menu nao carregou (0 fns)"
+    else why = "shortMenuLabels nao achado (" .. scanned .. " fns)" end
   end)
-  rep["hp_menu"] = H.menu_seeded and "shortMenuLabels PT" or "n/d (menu ainda nao carregou?)"
+  rep["hp_menu"] = why .. (seeded > 0 and (" seeded=" .. seeded) or "")
 end
 
 -- ===== PROBE do menu (só em modo dump/dev) — grava _tl_dump/_menu_probe.txt ====

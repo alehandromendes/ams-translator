@@ -29,15 +29,28 @@ REL_HOTPATCH = "Saved/Mods/lua/mods/tl_translate/pt/hotpatch.lua"
 REL_DUMP_DIR = "Saved/Mods/lua/_tl_dump"
 
 
+def _dest_for(name: str) -> str:
+    """Onde cada arquivo baixado vai, dentro da RAIZ do jogo. TODO o mod
+    (Init.lua, cpdd_user_settings.lua, hotpatch.lua e a camada PT) é baixado —
+    nada específico de LOTM fica embutido no .exe."""
+    if name == "cpdd_user_settings.lua":
+        return REL_USER_SETTINGS
+    if name == "Init.lua":
+        return REL_MOD_INIT
+    return REL_PT_DIR + "/" + name
+
+
 def _deploy_mod(root: Path) -> None:
-    """Copia Init.lua + cpdd_user_settings.lua + hotpatch.lua pro jogo."""
-    (root / REL_MOD_INIT).parent.mkdir(parents=True, exist_ok=True)
-    (root / REL_PT_DIR).mkdir(parents=True, exist_ok=True)
-    (root / REL_USER_SETTINGS).write_bytes((LUAMOD / "cpdd_user_settings.lua").read_bytes())
-    (root / REL_MOD_INIT).write_bytes((LUAMOD / "Init.lua").read_bytes())
-    hp = LUAMOD / "hotpatch.lua"
-    if hp.exists():
-        (root / REL_HOTPATCH).write_bytes(hp.read_bytes())
+    """Fallback DEV: copia o mod do luamod/ embutido (só existe rodando do
+    código-fonte). No .exe do usuário isso não existe — a instalação vem 100%
+    do que foi baixado (pt_src)."""
+    if not LUAMOD.is_dir():
+        return
+    for f in LUAMOD.iterdir():
+        if f.is_file() and f.suffix == ".lua":
+            dst = root / _dest_for(f.name)
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            dst.write_bytes(f.read_bytes())
 
 _ENTRY = re.compile(r'\[("(?:\\.|[^"\\])*"|\d+)\]\s*=\s*("(?:\\.|[^"\\])*")', re.S)
 
@@ -79,9 +92,9 @@ def install(root: Path, progress_cb=None, pt_src=None, dump=False) -> dict:
     NÃO modifica nenhum arquivo do CPDD — restaura qualquer modificação prévia
     (RuntimeTextGemini.lua / Init.lua) e só cria pastas seguras do usuário.
 
-    pt_src: pasta com os .lua PT já baixados (library.game_dir). Se None, cai no
-    PREBUILT embutido — que só existe em build de dev; no instalador a tradução
-    é baixada.
+    pt_src: pasta com TODO o mod já baixado (library.game_dir) — Init.lua,
+    cpdd_user_settings.lua, hotpatch.lua e a camada PT. Se None, cai no luamod/
+    embutido, que só existe rodando do código-fonte.
     dump: DEV — cria _tl_dump/run pra o mod dumpar os textos do jogo (+ hot-reload
     do hotpatch). Fora do dev fica sempre False."""
     import shutil
@@ -90,22 +103,25 @@ def install(root: Path, progress_cb=None, pt_src=None, dump=False) -> dict:
         patch_pt.PatchTranslator(root / "Saved/Mods").restore()
     except Exception:  # noqa: BLE001
         pass
-    # 2) mod em pasta segura do usuário
-    _deploy_mod(root)
-    ptdir = root / REL_PT_DIR
-    ptdir.mkdir(parents=True, exist_ok=True)
-    src = Path(pt_src) if pt_src else PREBUILT
+    # 2) instala TODO o mod a partir do que foi baixado (nada embutido no .exe)
+    src = Path(pt_src) if pt_src else LUAMOD
     n = 0
     if src.is_dir():
         for f in src.iterdir():
             if (f.is_file() and f.suffix == ".lua"
-                    and f.name not in ("hotpatch.lua", "apply_status.txt")):
-                shutil.copy2(f, ptdir / f.name)
+                    and f.name != "apply_status.txt"):
+                dst = root / _dest_for(f.name)
+                dst.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(f, dst)
                 n += 1
     if n == 0:
         raise RuntimeError(
-            "nenhum arquivo de tradução encontrado — clique em Baixar primeiro "
+            "nada pra instalar — clique em Baixar primeiro "
             f"({src})")
+    if not (root / REL_USER_SETTINGS).exists() or not (root / REL_MOD_INIT).exists():
+        raise RuntimeError(
+            "download incompleto: falta Init.lua / cpdd_user_settings.lua. "
+            "Clique em Baixar de novo.")
     dumpdir = root / REL_DUMP_DIR
     if dump:
         dumpdir.mkdir(parents=True, exist_ok=True)

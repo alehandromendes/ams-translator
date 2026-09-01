@@ -229,6 +229,10 @@
           "dest": "Saved/Mods/lua/mods/tl_translate/pt/Gameplay_LogicSystem_ExploreCollection_ExploreCollectionConst.lua"
         },
         {
+          "src": "lord-of-mysteries/pt/Init.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/Init.lua"
+        },
+        {
           "src": "lord-of-mysteries/pt/Launch_I18n_zh.lua",
           "dest": "Saved/Mods/lua/mods/tl_translate/pt/Launch_I18n_zh.lua"
         },
@@ -451,6 +455,14 @@
         {
           "src": "lord-of-mysteries/pt/cpdd_trap.lua",
           "dest": "Saved/Mods/lua/mods/tl_translate/pt/cpdd_trap.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/cpdd_user_settings.lua",
+          "dest": "Saved/Mods/lua/cpdd_user_settings.lua"
+        },
+        {
+          "src": "lord-of-mysteries/pt/hotpatch.lua",
+          "dest": "Saved/Mods/lua/mods/tl_translate/pt/hotpatch.lua"
         }
       ]
     }

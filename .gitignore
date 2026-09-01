@@ -28,3 +28,6 @@ installer/Output/
 # editores
 .vscode/
 .idea/
+
+# traducao PT pre-construida (37MB, gerada por gamepatch build; vai no instalador/Release)
+overlay/gamefill/prebuilt/

@@ -271,7 +271,7 @@ class Gallery(FramelessMixin, QMainWindow):
         self._hotkey_state = "—"
         self._film_guard = False
 
-        self.setWindowTitle("Tradutor de Legendas")
+        self.setWindowTitle("AMS Translator")
         self.resize(1180, 820)
         self.setMinimumSize(960, 580)
         self.setWindowFlag(Qt.FramelessWindowHint, True)
@@ -363,7 +363,7 @@ class Gallery(FramelessMixin, QMainWindow):
                 logo.setPixmap(icons.pixmap("languages", 18, "#4f8cff"))
         except Exception:  # noqa: BLE001
             logo.setPixmap(icons.pixmap("languages", 18, "#4f8cff"))
-        name = QLabel("Tradutor de Legendas")
+        name = QLabel("AMS Translator")
         name.setObjectName("TitleName")
         lay.addWidget(logo)
         lay.addSpacing(8)
@@ -421,7 +421,7 @@ class Gallery(FramelessMixin, QMainWindow):
         self.chk_view.setFocusPolicy(Qt.NoFocus)
         self.chk_view.toggled.connect(self._toggle_view)
         self.chk_top = QCheckBox("Sempre no topo")
-        self.chk_top.setChecked(bool(self.cfg.get("always_on_top", True)))
+        self.chk_top.setChecked(bool(self.cfg.get("always_on_top", False)))
         self.chk_top.setFocusPolicy(Qt.NoFocus)
         self.chk_top.toggled.connect(self._on_top_toggle)
         self.chk_reverse = QCheckBox("PT → 中文")
@@ -1047,7 +1047,7 @@ class Gallery(FramelessMixin, QMainWindow):
         super().changeEvent(e)
 
     def _apply_always_on_top(self) -> None:
-        self.setWindowFlag(Qt.WindowStaysOnTopHint, bool(self.cfg.get("always_on_top", True)))
+        self.setWindowFlag(Qt.WindowStaysOnTopHint, bool(self.cfg.get("always_on_top", False)))
 
     def _on_top_toggle(self, checked: bool) -> None:
         self.cfg["always_on_top"] = checked
@@ -1095,7 +1095,7 @@ def main() -> None:
         Qt.HighDpiScaleFactorRoundingPolicy.PassThrough
     )
     app = QApplication(sys.argv)
-    app.setApplicationName("Tradutor de Legendas")
+    app.setApplicationName("AMS Translator")
     app.setStyleSheet(style.APP_QSS)
     if config.ICON_PATH.exists():
         app.setWindowIcon(QIcon(str(config.ICON_PATH)))

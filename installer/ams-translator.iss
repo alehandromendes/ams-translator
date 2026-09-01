@@ -1,13 +1,13 @@
-; Assistente de instalação do Tradutor de Legendas (Inno Setup 6).
+; Assistente de instalação do AMS Translator (Inno Setup 6).
 ; Compilar: installer\build_installer.ps1  (ou abrir este .iss no Inno Setup Compiler)
-; Requer a pasta ..\dist\Tradutor de Legendas\  (gere com build_exe.bat).
+; Requer a pasta ..\dist\AMS Translator\  (gere com build_exe.bat).
 
-#define AppName "Tradutor de Legendas"
-#define AppVersion "1.0.0"
+#define AppName "AMS Translator"
+#define AppVersion "1.2.0"
 #define AppPublisher "Alehandro Mendes"
-#define AppExe "Tradutor de Legendas.exe"
-#define AppUrl "https://github.com/alehandromendes/tradutor-legendas"
-#define DistDir "..\dist\Tradutor de Legendas"
+#define AppExe "AMS Translator.exe"
+#define AppUrl "https://github.com/alehandromendes/ams-translator"
+#define DistDir "..\dist\AMS Translator"
 
 [Setup]
 AppId={{B6F3B6A2-7B2E-4E1C-9E0C-7A1D2C3D4E5F}
@@ -21,7 +21,7 @@ DefaultGroupName={#AppName}
 DisableProgramGroupPage=yes
 LicenseFile=..\LICENSE
 OutputDir=Output
-OutputBaseFilename=TradutorDeLegendasSetup
+OutputBaseFilename=AMSTranslatorSetup
 SetupIconFile=..\assets\icon.ico
 UninstallDisplayIcon={app}\{#AppExe}
 WizardStyle=modern
@@ -52,5 +52,28 @@ Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExe}"; Tasks: desktopico
 Filename: "{app}\{#AppExe}"; Description: "{cm:LaunchProgram,{#AppName}}"; Flags: nowait postinstall skipifsilent runascurrentuser
 
 [UninstallDelete]
-; dados do usuário ficam em %LOCALAPPDATA%\TradutorDeLegendas e NÃO são removidos.
+; dados do usuário (config, traduções baixadas, backups) ficam em
+; %LOCALAPPDATA%\AMS Translator por padrão — só saem se o usuário confirmar
+; no prompt abaixo ([Code] CurUninstallStepChanged).
 Type: filesandordirs; Name: "{app}\_internal"
+
+[Code]
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+var
+  DataDir: string;
+  Msg: string;
+begin
+  if CurUninstallStep = usPostUninstall then
+  begin
+    DataDir := ExpandConstant('{localappdata}\AMS Translator');
+    if DirExists(DataDir) then
+    begin
+      Msg := 'Apagar também as traduções baixadas, configurações e backups?' + #13#10 + #13#10 +
+        DataDir + #13#10 + #13#10 +
+        'Escolha Não se for reinstalar depois — assim não precisa baixar as ' +
+        'traduções de novo.';
+      if MsgBox(Msg, mbConfirmation, MB_YESNO or MB_DEFBUTTON2) = IDYES then
+        DelTree(DataDir, True, True, True);
+    end;
+  end;
+end;

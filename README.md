@@ -1,4 +1,4 @@
-# Tradutor de Legendas
+# AMS Translator
 
 **Traduza legendas e textos de jogos para português — ao vivo, sem tradução oficial e sem chave de API.**
 
@@ -12,15 +12,20 @@ funciona com qualquer jogo. Duas frentes:
   direto de uma [biblioteca no GitHub][lib], sempre com **backup do original** e
   restauração em um clique.
 
+**Multi-jogo por design:** o `.exe` não embute nada específico de um jogo — nem
+dados de tradução, nem o mod loader. Tudo isso é baixado por jogo, sob demanda,
+da [biblioteca][lib]. Traduzir um jogo novo não custa nenhum byte a mais no
+instalador de quem só joga outro.
+
 ---
 
 ## ⬇️ Download
 
-### 👉 [**Baixar TradutorDeLegendasSetup.exe**](https://github.com/alehandromendes/tradutor-legendas/raw/main/download/TradutorDeLegendasSetup.exe)
+### 👉 [**Baixar AMSTranslatorSetup.exe**](https://github.com/alehandromendes/ams-translator/raw/main/download/AMSTranslatorSetup.exe)
 
 Também disponível na pasta [`download/`](download/) do repositório e na página de
 **[Releases][rel]**. Link fixo para a última versão:
-`.../releases/latest/download/TradutorDeLegendasSetup.exe`
+`.../releases/latest/download/AMSTranslatorSetup.exe`
 
 Assistente de instalação em PT-BR / EN, cria atalhos no menu Iniciar e na área de
 trabalho. **Windows 10/11 (64 bits). Não precisa de Python.**
@@ -61,25 +66,55 @@ Todos os atalhos são reconfiguráveis em **Atalhos** (grave qualquer combinaç�
 
 ## Modo 2 — Tradução de jogos
 
-Botão **Tradução de jogos** na barra de ações:
+Botão **Tradução de jogos** na barra de ações. A tradução **não vem no instalador**
+— o app baixa da [biblioteca de traduções][lib] só o que for do jogo que você usar.
 
-1. O app lê o índice da [biblioteca de traduções][lib] no GitHub.
-2. **Baixar** — traz os arquivos da tradução para `…/TradutorDeLegendas/traducoes/<jogo>/`.
-3. O app **detecta a pasta do jogo** e confere se a estrutura bate com o esperado.
-4. **Instalar** — copia os arquivos para o jogo, guardando o original antes.
-5. **Restaurar original** desfaz a qualquer momento.
+### Passo a passo
 
-Suporte inicial: **Lord of Mysteries** — tradução em ponte **中文 → EN → PT-BR**. O jogo
-é em chinês; o [CPDD English patch](https://github.com/Lani27/lord-of-mysteries-english-patch)
-já faz 中文 → inglês, e este pacote traduz o inglês do patch → PT-BR (o inglês serve de
-pivô: nomes já vêm anglicizados e a tradução sai melhor que CN→PT direto). Reinstale
-após cada atualização do patch.
+1. **Aponte a pasta do jogo** em **Procurar** — a raiz que termina em `…\Game\C7`
+   (contém `Binaries\Win64\C7-Win64-Shipping.exe`). Fica **salva** pras próximas
+   vezes. Os botões abaixo só liberam depois que a pasta certa é reconhecida.
+2. **Instalar base (CPDD English patch)** — pré-requisito. O app checa se o CPDD
+   está no jogo; se não estiver, clique em **Baixar Patch CPDD English direto**
+   (baixa o instalador **oficial da autora** e abre o wizard) — ou **Abrir GitHub
+   do CPDD**. No wizard do CPDD: aponte a pasta do jogo → espere o pré-check →
+   **Install English**. Depois volte e clique em **Verificar**.
+   *O CPDD nunca é hospedado nem redistribuído aqui — só baixamos o mesmo `.exe`
+   da [release da Lani27](https://github.com/Lani27/lord-of-mysteries-english-patch/releases/latest).*
+3. **Baixar** — baixa o mod completo (107 arquivos `.lua`, ~37 MB — loader,
+   camada de tradução em runtime e a memória de tradução) pra
+   `%LOCALAPPDATA%\AMS Translator\traducoes\`.
+4. **Instalar** — coloca tudo em `Saved\Mods\lua\mods\tl_translate\` +
+   `cpdd_user_settings.lua` no jogo. **Não modifica nenhum arquivo do CPDD.**
+5. **Reinicie o jogo.** Espere ~30 s na tela inicial — o texto vai virando PT.
+6. **Restaurar original** — remove o mod (`tl_translate\` + `cpdd_user_settings.lua`);
+   o jogo volta ao CPDD puro (inglês). Reinicie o jogo.
+
+O status no diálogo mostra sempre onde você está: `✓ pasta do jogo`,
+`✓ CPDD detectado` / `✗ CPDD não encontrado`, e o passo seguinte da tradução.
+
+### Zerar tudo (voltar o jogo ao original)
+
+1. **Restaurar original** no app (ou apague `…\C7\Saved\Mods\lua\mods\tl_translate\`
+   e `…\lua\cpdd_user_settings.lua`).
+2. Pra tirar **o CPDD** também: apague/renomeie a pasta `…\C7\Saved\Mods\` inteira
+   e clique em **Reparar** no launcher do jogo (restaura o `pakchunk0-Windows.pak`
+   que o CPDD altera).
+
+### Lord of Mysteries — ponte 中文 → EN → PT-BR
+
+O jogo é em chinês. O **[CPDD English patch](https://github.com/Lani27/lord-of-mysteries-english-patch)**
+(pré-requisito) faz 中文 → inglês e instala a ponte de carregamento no `.pak` — a
+parte difícil. Este pacote traduz **o inglês do CPDD → PT-BR em runtime**, via um
+mod (`tl_translate`) carregado pelo LOMModLoader — sem tocar nos arquivos do CPDD.
+Se o CPDD atualizar, basta reabri-lo pelo wizard; a tradução PT continua funcionando.
+Cobertura atual ~85% (diálogo, missões, menus, skills, conquistas, exploração).
 
 ---
 
 ## Configuração — `overlay_config.json`
 
-Criado no primeiro uso, ao lado do executável (ou em `%LOCALAPPDATA%\TradutorDeLegendas\`).
+Criado no primeiro uso, ao lado do executável (ou em `%LOCALAPPDATA%\AMS Translator\`).
 
 | chave | padrão | função |
 |---|---|---|
@@ -93,6 +128,8 @@ Criado no primeiro uso, ao lado do executável (ou em `%LOCALAPPDATA%\TradutorDe
 | `max_pages` | `10` | quantas capturas a galeria mantém |
 | `auto_advance_gap_seconds` | `60` | intervalo mínimo para a galeria pular para a captura nova |
 | `reverse_panel_visible` | `true` | mostra o painel PT → 中文 |
+| `always_on_top` | `false` | manter a janela sempre sobre as outras |
+| `game_roots` | `{}` | pasta salva de cada jogo no diálogo "Tradução de jogos" |
 
 ---
 
@@ -101,8 +138,8 @@ Criado no primeiro uso, ao lado do executável (ou em `%LOCALAPPDATA%\TradutorDe
 ### Rodar do código
 
 ```bash
-git clone https://github.com/alehandromendes/tradutor-legendas
-cd tradutor-legendas
+git clone https://github.com/alehandromendes/ams-translator
+cd ams-translator
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
@@ -113,10 +150,10 @@ python -m overlay
 
 ```bash
 build_exe.bat
-#   -> dist/Tradutor de Legendas/   (~340 MB — PySide6 + onnxruntime + modelos OCR)
+#   -> dist/AMS Translator/   (~340 MB — PySide6 + onnxruntime + modelos OCR)
 
 powershell -ExecutionPolicy Bypass -File installer\build_installer.ps1
-#   -> installer/Output/TradutorDeLegendasSetup.exe
+#   -> installer/Output/AMSTranslatorSetup.exe
 ```
 
 `build_installer.ps1` gera o `.exe` se necessário, instala o Inno Setup (winget/choco)
@@ -125,15 +162,15 @@ se faltar, e compila o assistente.
 ### Ferramentas de linha de comando
 
 ```bash
-# Gera/atualiza a tradução do CPDD English patch (RuntimeTextGemini.lua + Init.lua):
-# traduz o inglês do patch -> PT-BR, fechando a ponte 中文 -> EN -> PT-BR
-python -m overlay.gamefill.patch_pt [--status | --restore | --no-init]
+# Regenera a memória de tradução EN->PT (os _en2pt_*.lua da biblioteca):
+# traduz o inglês do CPDD -> PT-BR, fechando a ponte 中文 -> EN -> PT-BR
+python -m overlay.gamefill.patch_pt [--status | --restore]
 
-# Preenche as lacunas de um mod de localização PT da comunidade (formato .parts/*.lua)
-python -m overlay.gamefill [--dry-run | --restore]
+# Empacota/instala o mod tl_translate direto numa pasta de jogo (uso dev):
+python -m overlay.gamefill.gamepatch <status|install|restore> [pasta_do_jogo]
 ```
 
-Ambos fazem backup do original e são reexecutáveis (retomam de onde pararam).
+Reexecutáveis (retomam de onde pararam) e com backup do original.
 
 ---
 
@@ -151,9 +188,12 @@ atalho global (PgUp região / PgDn tela inteira)  ─ ou ─  Ctrl+V
   → galeria: filmstrip + navegação + auto-avanço (buffer circular de 10)
 ```
 
-A tradução de mods (`overlay/gamefill/`) trabalha sobre os arquivos `.lua` que o mod de
-tradução do jogo já instalou, protegendo a marcação (`<InvHighlight>`, `<Mark id=…>`,
-`%s`, quebras de linha) e fixando termos de jogo ambíguos via `game_terms.csv`
+A tradução de jogos roda em cima do mod loader que o jogo já usa (no caso de LOTM,
+o `LOMModLoader` do CPDD English patch) — nunca editando arquivo nenhum dele. O app
+baixa um mod próprio (`tl_translate`) que se registra como extensão de usuário e, em
+runtime, varre os dados já carregados trocando EN→PT com uma memória de tradução +
+um dicionário curado de termos de UI, protegendo marcação (`<InvHighlight>`,
+`<Mark id=…>`, `%s`, quebras de linha) e fixando termos ambíguos via `game_terms.csv`
 (`gear` → equipamento, `dungeon` → masmorra, `Beyonder`, `Sequência`…). Só escreve na
 pasta do usuário do jogo (`Saved/Mods/`), fora da verificação de integridade dos `.pak`.
 
@@ -203,5 +243,5 @@ original é salvo antes de instalar** e restaurado em um clique.
 
 [MIT](LICENSE) © 2026 Alehandro Mendes. Este projeto não redistribui conteúdo dos jogos.
 
-[lib]: https://github.com/alehandromendes/tradutor-legendas-traducoes
-[rel]: https://github.com/alehandromendes/tradutor-legendas/releases/latest
+[lib]: https://github.com/alehandromendes/ams-translator-traducoes
+[rel]: https://github.com/alehandromendes/ams-translator/releases/latest

@@ -1,4 +1,4 @@
-# Tradutor de Legendas — app de desktop (Windows)
+# AMS Translator — app de desktop (Windows)
 PySide6>=6.6
 mss>=9.0
 Pillow>=10.0

@@ -1,9 +1,10 @@
 # -*- mode: python ; coding: utf-8 -*-
 """
-@description Build do tradutor de legendas ao vivo num executável Windows.
-@connects  pyinstaller overlay.spec   (gera dist/Tradutor de Legendas/)
+@description Build do AMS Translator (tradução ao vivo) num executável Windows.
+@connects  pyinstaller overlay.spec   (gera dist/AMS Translator/)
 """
 import certifi
+from pathlib import Path
 from PyInstaller.utils.hooks import collect_all
 
 datas = [
@@ -13,6 +14,12 @@ datas = [
     ("overlay/gamefill/game_terms.csv", "overlay/gamefill"),
     ("overlay/gamefill/fixes.csv", "overlay/gamefill"),
     ("overlay/gamefill/translations_index.json", "overlay/gamefill"),
+    ("overlay/gamefill/skill_overrides.csv", "overlay/gamefill"),
+    # NADA específico de jogo vai no .exe. O AMS Translator é multi-jogo: TODO o
+    # mod tl_translate (Init.lua + cpdd_user_settings.lua + hotpatch.lua + a
+    # camada PT, 107 arquivos) é BAIXADO do repo ams-translator-traducoes na
+    # hora de instalar. luamod/ e prebuilt/ só servem de fallback rodando do
+    # código-fonte (dev).
     (certifi.where(), "."),          # -> _internal/cacert.pem  (SSL do requests)
 ]
 binaries = []
@@ -21,7 +28,7 @@ hiddenimports = [
     # importados sob demanda pelo botão "Traduzir jogo"
     "overlay.game_translate",
     "overlay.gamefill", "overlay.gamefill.patch_pt", "overlay.gamefill.library",
-    "overlay.gamefill.core", "overlay.gamefill.luatable",
+    "overlay.gamefill.core", "overlay.gamefill.luatable", "overlay.gamefill.gamepatch",
 ]
 
 # rapidocr + onnxruntime trazem modelos .onnx e DLLs — precisa coletar tudo.
@@ -50,7 +57,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name="Tradutor de Legendas",
+    name="AMS Translator",
     console=False,
     disable_windowed_traceback=False,
     icon="assets/icon.ico",
@@ -64,5 +71,5 @@ coll = COLLECT(
     exe,
     a.binaries,
     a.datas,
-    name="Tradutor de Legendas",
+    name="AMS Translator",
 )

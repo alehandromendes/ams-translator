@@ -1,0 +1,93 @@
+# Overrides exatos EN -> PT (TAB separado). Aplicados por cima do cache de
+# tradução, casando o VALOR completo da célula. Use para encurtar nomes de
+# skill e traduzir rótulos/tags do sistema de habilidades.
+#
+# EN<TAB>PT
+#
+# --- renomes de skill pedidos pelo usuário ---
+Nebula Aria	Nebulosa Aria
+Nebula Aria.	Nebulosa Aria.
+Spirit World Travel	Viagem Espiritual
+Spirit World Travel.	Viagem Espiritual.
+Space Cage	Jaula Espacial
+Space Cage.	Jaula Espacial.
+Star Positioning	Avanço Estelar
+Star Positioning.	Avanço Estelar.
+Flash Strike	Golpe Relâmpago
+Flash Strike.	Golpe Relâmpago.
+Roaming	Trespassar
+Roaming.	Trespassar.
+#
+# --- tags / rótulos do painel de skills ---
+Group	Em Área
+Continuous	Contínua
+Burst	Explosão
+Finisher Skill	Finalizadora
+Normal Skill	Habilidade Comum
+Special Skill	Habilidade Especial
+Special Skill (No Equipment Required)	Especial (sem equipar)
+Roleplay Skill	Habilidade de Interpretação
+Recommended Builds	Builds Recomendadas
+My Builds	Minhas Builds
+Filter Skills	Filtrar
+Filter Skill	Filtrar
+Simple	Simples
+Details	Detalhes
+Equip Skill	Equipar
+Equipped	Equipado
+One-Click Assist	Auxílio Rápido
+One-Click Upgrade	Melhoria Rápida
+Training Dummy	Boneco de Treino
+Connections	Conexões
+#
+# --- termos unificados / renomes de menu pedidos pelo usuário ---
+marionette	Fantoches
+Marionette	Fantoches
+Marionettes	Fantoches
+Puppet	Fantoche
+Puppets	Fantoches
+Obtain marionette	Obter fantoche
+Strategy Server	Guerra de Clãs
+Win by Lying Down	Atividades
+Enter the Extraordinary World	Entrar no mundo dos Beyounders
+Enter Extraordinary World	Entrar no mundo dos Beyounders
+Enter World	Entrar no mundo dos Beyounders
+Enter the World	Entrar no mundo dos Beyounders
+Exit Game	Sair do Jogo
+Confirm exiting the game?	Confirmar saída do jogo?
+Confirm	Confirmar
+Cancel	Cancelar
+Select Character	Selecionar Personagem
+
+# lote menus curtos (hotpatch OVR)
+Main Quest	Missão Principal
+Side Quest	Missão Secundária
+Original Work	Obra Original
+Overview	Visão Geral
+Peripheral	Acessórios
+Weapon	Arma
+Vehicle	Veículo
+Body Aura	Aura Corporal
+Footprints	Pegadas
+Idle	Parado
+Performance	Atuação
+Send	Enviar
+Store	Loja
+Library	Biblioteca
+Plaza	Praça
+Vault	Cofre
+Spectator	Espectador
+Bard	Bardo
+Seer	Vidente
+Warrior	Guerreiro
+Apprentice	Aprendiz
+Track Quest	Rastrear Missão
+Cancel Tracking	Cancelar Rastreamento
+Quest Target	Alvo da Missão
+Monarch: Flame	Monarca das Chamas
+Monarch: Abyss	Monarca do Abismo
+Monarch: Sacred Radiance	Monarca do Resplendor
+Monarch: Ice Crystal	Monarca do Gelo
+Pure White County	Cavalo Branco de Napoleão
+Acceleration.	Aceleração.
+Acceleration	Aceleração

@@ -11,6 +11,7 @@ from pathlib import Path
 
 from PySide6.QtCore import Qt, QThread, Signal
 from PySide6.QtWidgets import (
+    QCheckBox,
     QDialog,
     QFileDialog,
     QFrame,
@@ -24,7 +25,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from . import icons
+from . import config, icons
 from .gamefill import library
 
 
@@ -57,14 +58,22 @@ class _Job(QThread):
 
 
 class _GameCard(QFrame):
-    """Um jogo da biblioteca: info + botão Baixar/Instalar à direita."""
+    """Um jogo da biblioteca: info + botão de ação à direita.
+    Fluxo: (achar pasta) → Instalar base (dependência) → Baixar → Instalar."""
 
     def __init__(self, dlg: "GameTranslateDialog", game: library.Game) -> None:
         super().__init__()
         self.setObjectName("GameCard")
         self.dlg = dlg
         self.game = game
-        self.target: Path | None = None
+        self.root: Path | None = None
+        # pasta salva de uma sessão anterior (por jogo)
+        try:
+            _saved = (config.load().get("game_roots") or {}).get(game.id)
+            if _saved and dlg.lib.is_game_root(game, Path(_saved)):
+                self.root = Path(_saved)
+        except Exception:  # noqa: BLE001
+            pass
 
         outer = QVBoxLayout(self)
         outer.setContentsMargins(14, 12, 14, 12)
@@ -95,19 +104,23 @@ class _GameCard(QFrame):
             note.setWordWrap(True)
             outer.addWidget(note)
 
-        # pasta do jogo
+        # pasta do jogo (raiz — termina em C7)
         row = QHBoxLayout()
         row.setSpacing(6)
         self.path = QLineEdit()
-        self.path.setPlaceholderText("pasta do jogo…")
+        self.path.setPlaceholderText("ex.: C:\\Jogos\\Game\\C7")
         self.path.setReadOnly(True)
+        if self.root:
+            self.path.setText(str(self.root))
         b_browse = QPushButton("Procurar")
         b_browse.clicked.connect(self._browse)
-        b_default = QPushButton("Padrão")
-        b_default.clicked.connect(self._use_default)
+        b_verify = QPushButton("Verificar")
+        b_verify.setToolTip("Recheca a pasta do jogo e se o CPDD English patch "
+                            "está instalado.")
+        b_verify.clicked.connect(self.refresh)
         row.addWidget(self.path, 1)
         row.addWidget(b_browse)
-        row.addWidget(b_default)
+        row.addWidget(b_verify)
         outer.addLayout(row)
 
         self.check = QLabel()
@@ -115,50 +128,98 @@ class _GameCard(QFrame):
         self.check.setWordWrap(True)
         outer.addWidget(self.check)
 
-        self._use_default(initial=True)
+        # DEV: toggle pra instalar já com o modo dump ligado (_tl_dump/run).
+        # Só aparece rodando do código-fonte (não no .exe do usuário).
+        self.chk_dump = None
+        if not getattr(config, "FROZEN", False):
+            self.chk_dump = QCheckBox("Instalar com modo dump (dev)")
+            self.chk_dump.setToolTip(
+                "Cria _tl_dump/run — o mod dumpa os textos atuais do jogo e liga "
+                "o hot-reload do hotpatch.lua. Só pra desenvolvimento.")
+            outer.addWidget(self.chk_dump)
 
-    # ------------------------------------------------------------------
-    def _use_default(self, initial: bool = False) -> None:
-        t = self.dlg.lib.detect_game_dir(self.game)
-        if t:
-            self.target = t
-            self.path.setText(str(t))
-        elif not initial:
-            QMessageBox.information(
-                self, "Pasta padrão",
-                "Não achei a pasta do jogo automaticamente. Use 'Procurar'.")
+        # começa em branco de propósito: o usuário TEM que apontar a pasta C7
+        # (é o que libera o botão Instalar).
         self.refresh()
 
+    # ------------------------------------------------------------------
     def _browse(self) -> None:
-        d = QFileDialog.getExistingDirectory(self, "Pasta do jogo (…/C7/Saved/Mods)",
-                                             self.path.text() or "C:/")
-        if d:
-            self.target = Path(d)
-            self.path.setText(d)
-            self.refresh()
+        d = QFileDialog.getExistingDirectory(
+            self, "Pasta do jogo — a que termina em \\Game\\C7",
+            self.path.text() or "C:/")
+        if not d:
+            return
+        p = Path(d)
+        if not self.dlg.lib.is_game_root(self.game, p):
+            QMessageBox.warning(self, "Pasta do jogo",
+                                "Essa pasta não parece a raiz do jogo (falta o "
+                                "executável em Binaries/Win64).")
+            return
+        self.root = p
+        self.path.setText(d)
+        self._save_root()
+        self.refresh()
+
+    def _save_root(self) -> None:
+        """Persiste a pasta do jogo em overlay_config.json (por jogo)."""
+        if not self.root:
+            return
+        try:
+            cfg = config.load()
+            roots = dict(cfg.get("game_roots") or {})
+            roots[self.game.id] = str(self.root)
+            cfg["game_roots"] = roots
+            config.save(cfg)
+        except Exception:  # noqa: BLE001
+            pass
 
     # ------------------------------------------------------------------
     def refresh(self) -> None:
-        st = self.dlg.lib.state(self.game, self.target)
-        self.target = Path(st["target"]) if st["target"] else self.target
+        # autodetect=False: só considera a pasta que o usuário escolheu na mão.
+        st = self.dlg.lib.state(self.game, self.root, autodetect=False)
+        self.root = Path(st["root"]) if st["root"] else self.root
+        dep = self.game.dependency
 
-        if st["missing"]:
-            self.check.setText("✗ falta na pasta: " + ", ".join(st["missing"][:3]))
-        elif self.target:
-            self.check.setText("✓ estrutura do jogo confere")
+        lines = []
+        if not st["root_ok"]:
+            lines.append("① escolha a pasta do jogo (…\\Game\\C7) em <b>Procurar</b>")
         else:
-            self.check.setText("escolha a pasta do jogo")
+            lines.append(f"✓ pasta do jogo: <code>{st['root']}</code>")
+            if dep:
+                if st["dep_ok"]:
+                    lines.append(f"✓ {dep.name} detectado no jogo")
+                else:
+                    miss = st.get("dep_missing") or []
+                    lines.append(
+                        f"✗ <b>{dep.name} NÃO encontrado</b> — clique em "
+                        f"<b>Instalar base</b>"
+                        + (f"<br><span style='opacity:.7'>falta: "
+                           f"{', '.join(miss)}</span>" if miss else ""))
+            if st["dep_ok"]:
+                if st["installed"]:
+                    lines.append("✓ tradução PT instalada — reinicie o jogo")
+                elif not st["downloaded"]:
+                    lines.append("→ baixe a tradução (botão <b>Baixar</b>)")
+                else:
+                    lines.append("→ pronto pra instalar a tradução PT")
+        self.check.setTextFormat(Qt.TextFormat.RichText)
+        self.check.setText("<br>".join(lines))
 
-        if not st["downloaded"]:
-            self.btn.setText("  Baixar")
-            self.btn.setIcon(icons.icon("save"))
-            self.btn.setEnabled(True)
+        icon, text, enabled = "languages", "  Instalar", False
+        if not st["root_ok"]:
+            text, enabled = "  Instalar", False
+        elif dep and not st["dep_ok"]:
+            icon, text, enabled = "shield", f"  Instalar base ({dep.name})", True
+        elif not st["downloaded"]:
+            icon, text, enabled = "save", "  Baixar", True
+        elif st["installed"]:
+            icon, text, enabled = "refresh", "  Reinstalar", True
         else:
-            self.btn.setText("  Reinstalar" if st["installed"] else "  Instalar")
-            self.btn.setIcon(icons.icon("refresh" if st["installed"] else "languages"))
-            self.btn.setEnabled(bool(st["dir_ok"]))
-        self.btn.setToolTip("" if self.btn.isEnabled()
-                            else "Escolha a pasta correta do jogo primeiro.")
+            icon, text, enabled = "languages", "  Instalar", True
+        self.btn.setText(text)
+        self.btn.setIcon(icons.icon(icon))
+        self.btn.setEnabled(enabled and not self.dlg.busy)
+        self.btn.setToolTip("" if enabled else "Aponte a pasta do jogo primeiro.")
         self.dlg.btn_restore.setEnabled(st["installed"])
         self.dlg._card_state = st
 
@@ -166,21 +227,78 @@ class _GameCard(QFrame):
     def _action(self) -> None:
         if self.dlg.busy:
             return
-        st = self.dlg.lib.state(self.game, self.target)
-        if not st["downloaded"]:
+        lib = self.dlg.lib
+        st = lib.state(self.game, self.root, autodetect=False)
+        dep = self.game.dependency
+
+        if not st["root_ok"]:
+            QMessageBox.information(self, "Pasta do jogo",
+                                   "Clique em Procurar e aponte a pasta que termina "
+                                   "em \\Game\\C7.")
+            return
+        if dep and not st["dep_ok"]:
+            self._install_dependency(dep)
+        elif not st["downloaded"]:
             self.dlg._run_job(
-                "Baixando tradução…",
-                lambda **kw: self.dlg.lib.download(self.game, **kw),
+                f"Baixando a tradução PT ({len(self.game.files)} arquivos)…",
+                lambda **kw: lib.download(self.game, **kw),
                 self.refresh,
                 done_msg="Tradução baixada. Clique em Instalar pra aplicar no jogo.")
         else:
-            if not self.target:
-                return
+            # instalação 100% via gamepatch: mod tl_translate + PT baixado.
+            # NÃO modifica arquivos do CPDD.
+            dump = bool(self.chk_dump and self.chk_dump.isChecked())
+
+            def _do_install(**kw):
+                from .gamefill import gamepatch
+                gamepatch.install(self.root, pt_src=lib.game_dir(self.game),
+                                  dump=dump)
+                lib._mark_installed(self.game, self.root)
             self.dlg._run_job(
-                "Instalando…",
-                lambda **kw: self.dlg.lib.install(self.game, self.target, **kw),
-                self.refresh,
-                done_msg="Tradução instalada. Reinicie o jogo pra ver.")
+                "Instalando…", _do_install, self.refresh,
+                done_msg=("Instalado COM modo dump. Abra o jogo, navegue pelas "
+                          "telas, feche, e rode 'gamepatch build'."
+                          if dump else
+                          "Tradução instalada. Reinicie o jogo pra ver."))
+
+    def _install_dependency(self, dep: "library.Dependency") -> None:
+        import webbrowser
+        m = QMessageBox(self.dlg)
+        m.setWindowTitle(f"Pré-requisito: {dep.name}")
+        m.setIcon(QMessageBox.Icon.Warning)
+        m.setTextFormat(Qt.TextFormat.RichText)
+        m.setText(
+            f"A tradução PT roda <b>em cima do {dep.name}</b> — ele precisa estar "
+            f"instalado no jogo primeiro.<br><br>"
+            f"<b>1.</b> pegue o instalador do {dep.name}<br>"
+            f"<b>2.</b> rode: aponte a pasta do jogo → pré-check → <b>Install English</b><br>"
+            f"<b>3.</b> volte aqui e clique em <b>Instalar</b><br><br>"
+            f"<i>O instalador é o oficial da autora (release no GitHub dela). "
+            f"Este app nunca hospeda nem redistribui — só baixa o mesmo arquivo "
+            f"pra você.</i>")
+        direct = None
+        if dep.direct_url:
+            direct = m.addButton("Baixar Patch CPDD English direto",
+                                 QMessageBox.ButtonRole.AcceptRole)
+        page = m.addButton("Abrir GitHub do CPDD", QMessageBox.ButtonRole.ActionRole)
+        m.addButton("Cancelar", QMessageBox.ButtonRole.RejectRole)
+        m.exec()
+        clicked = m.clickedButton()
+        if direct is not None and clicked is direct:
+            def _get_cpdd(**kw):
+                path = self.dlg.lib.fetch_dependency_direct(
+                    self.game, progress_cb=kw.get("progress_cb"))
+                library.Library.run_installer(path)
+            self.dlg._run_job(
+                "Baixando o CPDD English patch…", _get_cpdd, self.refresh,
+                done_msg=("Instalador aberto. No wizard do CPDD: aponte a pasta do "
+                          "jogo → pré-check → Install English. Quando terminar, "
+                          "clique em Verificar aqui."))
+        elif clicked is page:
+            webbrowser.open(dep.page_url)
+            self.refresh()
+        else:
+            self.refresh()
 
 
 class GameTranslateDialog(QDialog):
@@ -207,6 +325,21 @@ class GameTranslateDialog(QDialog):
         head.addWidget(self.src_lbl, 1)
         head.addWidget(b_reload)
         root.addLayout(head)
+
+        steps = QLabel(
+            "<b>Como instalar</b> (Lord of Mysteries)<br>"
+            "<b>1.</b> Instale o <b>CPDD English patch</b> — clique em "
+            "<i>Instalar base</i> → <b>Baixar Patch CPDD English direto</b> "
+            "(ou abra o GitHub da autora). Rode o instalador: pasta do jogo → "
+            "pré-check → <i>Install English</i>.<br>"
+            "<b>2.</b> Volte aqui e clique em <b>Instalar</b> — aplica a tradução PT "
+            "(só cria uma pasta no jogo, não mexe no CPDD).<br>"
+            "<b>3.</b> Reinicie o jogo. Para desfazer: <i>Restaurar original</i>.")
+        steps.setWordWrap(True)
+        steps.setObjectName("RowSub")
+        steps.setStyleSheet("padding:8px 10px; background:rgba(255,255,255,0.04);"
+                            "border-radius:8px;")
+        root.addWidget(steps)
 
         self.cards = QVBoxLayout()
         self.cards.setSpacing(10)
@@ -242,7 +375,7 @@ class GameTranslateDialog(QDialog):
                 w.deleteLater()
         games, origin = library.load_index()
         self.src_lbl.setText({
-            "github": "Fonte: GitHub · alehandromendes/tradutor-legendas-traducoes",
+            "github": "Fonte: GitHub · alehandromendes/ams-translator-traducoes",
             "local": "Fonte: índice embutido (offline) — GitHub indisponível",
             "vazio": "Nenhuma tradução encontrada",
         }.get(origin, origin))
@@ -289,16 +422,45 @@ class GameTranslateDialog(QDialog):
         if self.busy or not self._game_cards:
             return
         card = self._game_cards[0]
+        root = card.root
+        if not root or not self.lib.is_game_root(card.game, root):
+            QMessageBox.information(
+                self, "Restaurar original",
+                "Aponte a pasta do jogo primeiro (Procurar / Verificar).")
+            return
         if QMessageBox.question(
             self, "Restaurar original",
-            "Devolver o arquivo original (inglês) do jogo?"
+            "Remover a tradução PT e devolver o jogo ao CPDD original (inglês)?"
         ) != QMessageBox.StandardButton.Yes:
             return
-        n = self.lib.restore(card.game, card.target)
-        QMessageBox.information(self, "Restaurar",
-                                f"{n} arquivo(s) restaurado(s). Reinicie o jogo."
-                                if n else "Não havia backup pra restaurar.")
+
+        errs: list[str] = []
+        removed: list[str] = []
+        try:
+            self.lib.restore(card.game, root)
+        except Exception as e:  # noqa: BLE001
+            errs.append(f"biblioteca: {e}")
+        try:
+            from .gamefill import gamepatch
+            removed = gamepatch.restore(root)
+        except Exception as e:  # noqa: BLE001
+            errs.append(f"gamepatch: {e}")
         card.refresh()
+
+        if errs:
+            QMessageBox.warning(
+                self, "Restaurar",
+                "Não deu pra restaurar tudo:\n" + "\n".join(errs))
+        elif removed:
+            QMessageBox.information(
+                self, "Restaurar",
+                "Removido:\n- " + "\n- ".join(removed)
+                + "\n\nReinicie o jogo — ele volta ao CPDD (inglês).")
+        else:
+            QMessageBox.information(
+                self, "Restaurar",
+                "Nada da tradução PT foi encontrado no jogo — já está no "
+                "original.")
 
     def closeEvent(self, e) -> None:
         if self._job:

@@ -274,6 +274,14 @@ local function pat_fix(v)
   return nil
 end
 
+-- fallback de ÚLTIMO recurso (só se não achou frase exata no _en2pt) —
+-- "Chapter 4" e variações que não têm entrada própria na memória.
+local function pat_fallback(v)
+  local cn, ctail = v:match("^Chapter%s+(%d+)%s*(.-)$")
+  if cn then return "Capítulo " .. cn .. (ctail ~= "" and (" " .. ctail) or "") end
+  return nil
+end
+
 -- tira acentos (a fonte do jogo nao renderiza á/ã/ç em algumas cutscenes)
 local _ACC = {
   ["\195\161"]="a",["\195\160"]="a",["\195\162"]="a",["\195\163"]="a",["\195\164"]="a",
@@ -299,6 +307,8 @@ local function tl_one(v)
   local p = en2pt(v)
   local ml = (#v < 20) and (#v * 0.6) or (#v * 0.35)
   if p and p ~= v and #p >= math.max(3, ml) then return strip_accents(p) end
+  local fb = pat_fallback(v)
+  if fb then return strip_accents(fb) end
   return v
 end
 

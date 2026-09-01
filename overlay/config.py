@@ -72,7 +72,7 @@ DEFAULTS: dict = {
     "monitor": 1,            # índice mss (1 = monitor primário) — usado se region for None
     "source_lang": "zh-CN",
     "target_lang": "pt",
-    "always_on_top": True,
+    "always_on_top": False,
     "min_ocr_score": 0.5,
     "font_path": "C:/Windows/Fonts/seguisb.ttf",  # Segoe UI Semibold
     "hide_window_on_capture": True,

@@ -421,7 +421,7 @@ class Gallery(FramelessMixin, QMainWindow):
         self.chk_view.setFocusPolicy(Qt.NoFocus)
         self.chk_view.toggled.connect(self._toggle_view)
         self.chk_top = QCheckBox("Sempre no topo")
-        self.chk_top.setChecked(bool(self.cfg.get("always_on_top", True)))
+        self.chk_top.setChecked(bool(self.cfg.get("always_on_top", False)))
         self.chk_top.setFocusPolicy(Qt.NoFocus)
         self.chk_top.toggled.connect(self._on_top_toggle)
         self.chk_reverse = QCheckBox("PT → 中文")
@@ -1047,7 +1047,7 @@ class Gallery(FramelessMixin, QMainWindow):
         super().changeEvent(e)
 
     def _apply_always_on_top(self) -> None:
-        self.setWindowFlag(Qt.WindowStaysOnTopHint, bool(self.cfg.get("always_on_top", True)))
+        self.setWindowFlag(Qt.WindowStaysOnTopHint, bool(self.cfg.get("always_on_top", False)))
 
     def _on_top_toggle(self, checked: bool) -> None:
         self.cfg["always_on_top"] = checked

@@ -419,8 +419,8 @@ local function sweep(roots, cap)
               local p = tl_one(v)
               if p ~= v then
                 pcall(function() t[k] = p end); st.c = st.c + 1
-              else
-                pcall(scan_capture, v)
+              elseif H._dev then
+                pcall(scan_capture, v)   -- captura de faltas: SÓ dev
               end
             end
           elseif type(v) == "table" then walk(v) end
@@ -443,10 +443,11 @@ local now = H.runs
 -- Fix: traduzir os VALORES de shortMenuLabels (tabela indexada por enum interno,
 -- so usada como texto de exibicao — nunca comparada) via debug.getupvalue no
 -- proprio OnRefresh que o CPDD instalou. Roda 1x (H.menu_seeded).
-if not H.menu_seeded then
-  -- ESPELHA patch_pt._MENU_LABELS (sem acento — pedido do usuário). Os 6
-  -- primeiros são escolha explícita dele: Gear=Sets, Explore=Mundo,
-  -- DarkCity=Exploracao, Pathway=Divino, Skills=Skills, Dungeon=Dungeon.
+-- LIMITE DURO: no máx 10 tentativas e só a cada 4 ticks. Se não achar o
+-- shortMenuLabels, DESISTE (menu fica em EN) — antes isso rodava pra sempre
+-- todo tick varrendo LOMModLoader.Hooks inteiro e travava o jogo dos usuários.
+if not H.menu_seeded and (H.menu_tries or 0) < 10 and (H.runs % 4 == 0) then
+  H.menu_tries = (H.menu_tries or 0) + 1
   local MENU_PT = {
     Gear="Sets", Explore="Mundo", DarkCity="Exploracao", Pathway="Divino",
     Skills="Skills", Dungeon="Dungeon",
@@ -457,65 +458,53 @@ if not H.menu_seeded then
     Home="Inicio", Bag="Mochila", News="Noticias", Mail="Correio",
     Ranking="Ranking", Unequip="Desequipar", Settings="Config", Exit="Sair",
   }
-  local function seed_tbl(tbl)
-    local hit = 0
-    for k, en in pairs(tbl) do
-      local pt = MENU_PT[en]
-      if pt and pt ~= en then tbl[k] = pt; hit = hit + 1 end
-    end
-    return hit
-  end
-  local why, scanned, seeded = "?", 0, 0
+  local why, seeded = "n/d", 0
   pcall(function()
     if type(debug) ~= "table" or type(debug.getupvalue) ~= "function" then
-      why = "sem debug.getupvalue"; return
+      why = "sem debug"; H.menu_seeded = true; return   -- nunca vai funcionar
     end
-    -- candidatos: hooks do Loader p/ MenuBtn_Item + a classe + módulo CPDD
-    local fns, seenfn = {}, {}
-    local function add_fn(f)
-      if type(f) == "function" and not seenfn[f] then seenfn[f] = true; fns[#fns + 1] = f end
-    end
-    local function harvest(t, d)
-      if type(t) ~= "table" or d > 3 then return end
-      for k, v in pairs(t) do
-        if type(v) == "function" then add_fn(v)
-        elseif type(v) == "table" and d < 3 and k ~= "__index" then harvest(v, d + 1) end
-      end
-    end
+    -- SÓ o hook do MenuBtn_Item (é onde o CPDD fecha sobre shortMenuLabels).
+    -- Nada de varrer Hooks inteiro.
     local L = _G.LOMModLoader
-    if type(L) == "table" then
-      for _, hk in ipairs({ "Hooks", "AfterLoad", "AfterLoadCallbacks", "Callbacks" }) do
-        local h = rawget(L, hk)
-        if type(h) == "table" then
-          harvest(h["Gameplay.LogicSystem.Menu.MenuBtn_Item"] or {}, 0)
-          harvest(h, 1)   -- varre tudo (raso) — algum hook fecha sobre shortMenuLabels
-        end
+    local hooks = type(L) == "table" and rawget(L, "Hooks")
+    local mb = type(hooks) == "table"
+      and hooks["Gameplay.LogicSystem.Menu.MenuBtn_Item"]
+    local fns, seen = {}, {}
+    local function collect(t, d)
+      if type(t) ~= "table" or d > 2 then return end
+      for _, v in pairs(t) do
+        if type(v) == "function" and not seen[v] then seen[v] = true; fns[#fns+1] = v
+        elseif type(v) == "table" and d < 2 then collect(v, d + 1) end
       end
     end
-    for _, nm in ipairs({ "Gameplay.LogicSystem.Menu.MenuBtn_Item",
-      "mods.cpdd_runtime_fixes.Init", "cpdd_runtime_fixes.Init" }) do
-      harvest(package.loaded[nm] or {}, 0)
+    collect(mb, 0)
+    local cls = package.loaded["Gameplay.LogicSystem.Menu.MenuBtn_Item"]
+    if type(cls) == "table" then
+      local r = rawget(cls, "OnRefresh"); if type(r) == "function" and not seen[r] then fns[#fns+1] = r end
     end
-    -- percorre upvalues recursivamente (função -> função -> tabela shortMenuLabels)
-    local seenup = {}
+    local dug = {}
     local function dig(f, d)
-      if type(f) ~= "function" or seenup[f] or d > 4 then return end
-      seenup[f] = true; scanned = scanned + 1
-      for i = 1, 120 do
-        local n, v = debug.getupvalue(f, i)
+      if type(f) ~= "function" or dug[f] or d > 2 then return end
+      dug[f] = true
+      for i = 1, 50 do
+        local n, val = debug.getupvalue(f, i)
         if not n then break end
-        if n == "shortMenuLabels" and type(v) == "table" and not v.__tl_pt then
-          seeded = seeded + seed_tbl(v); v.__tl_pt = true
-        elseif type(v) == "function" then dig(v, d + 1)
-        end
+        if n == "shortMenuLabels" and type(val) == "table" and not val.__tl_pt then
+          for k, en in pairs(val) do
+            local pt = MENU_PT[en]
+            if pt and pt ~= en then val[k] = pt; seeded = seeded + 1 end
+          end
+          val.__tl_pt = true
+        elseif type(val) == "function" then dig(val, d + 1) end
       end
     end
     for _, f in ipairs(fns) do dig(f, 0) end
-    if seeded > 0 then H.menu_seeded = true; why = "ok"
-    elseif scanned == 0 then why = "menu nao carregou (0 fns)"
-    else why = "shortMenuLabels nao achado (" .. scanned .. " fns)" end
+    if seeded > 0 then H.menu_seeded = true; why = "ok seeded=" .. seeded end
   end)
-  rep["hp_menu"] = why .. (seeded > 0 and (" seeded=" .. seeded) or "")
+  if (H.menu_tries or 0) >= 10 and not H.menu_seeded then
+    H.menu_seeded = true; why = why .. " (desistiu)"
+  end
+  rep["hp_menu"] = why
 end
 
 -- ===== PROBE do menu (só em modo dump/dev) — grava _tl_dump/_menu_probe.txt ====
@@ -704,7 +693,7 @@ if not H.big_done then
     if type(_G.Game) == "table" then r[#r + 1] = _G.Game end
     H.roots = r; H.ri = 1; H.bf = 0; H.rtry = 0
   end
-  local BUDGET, spent = 60000, 0
+  local BUDGET, spent = 35000, 0
   while H.ri <= #H.roots and spent < BUDGET do
     local cap = BUDGET - spent
     local c, nodes = sweep({ H.roots[H.ri] }, cap)
@@ -753,8 +742,14 @@ if not H.settext_hooked then
 end
 
 -- re-sweep LEVE: so os sistemas de UI de Game.* + modulos de painel.
--- cooldown por contador. cap baixo pra nao dar hitch.
-if H.last_sweep and (now - H.last_sweep) < 3 then rep["hp"] = "cd"; return "cd" end
+-- cooldown por contador. Depois da varredura grande, espaça BEM mais (só
+-- pra pegar painel novo que abriu) — antes rodava a cada 3 ticks pra sempre
+-- com cap 50k e travava o jogo de alguns usuarios.
+-- pós-varredura: 8 ticks; se 4 re-sweeps seguidos não traduziram nada, cai
+-- pra 24 ticks (a UI já está estável — quase nada pra fazer).
+local RS_GAP = 3
+if H.big_done then RS_GAP = ((H.rs_idle or 0) >= 4) and 24 or 8 end
+if H.last_sweep and (now - H.last_sweep) < RS_GAP then rep["hp"] = "cd"; return "cd" end
 H.last_sweep = now
 local roots = {}
 if type(_G.Game) == "table" then
@@ -780,37 +775,39 @@ for name, mod in pairs(package.loaded) do
     end
   end
 end
-local c = sweep(roots, 50000)      -- foco em UI: cap ok, sem hitch
+local c = sweep(roots, H.big_done and 18000 or 40000)   -- cap baixo pós-big
 H.bf = (H.bf or 0) + c
+H.rs_idle = (c == 0) and ((H.rs_idle or 0) + 1) or 0    -- re-sweeps ociosos seguidos
 
--- probe: captura strings de avanço/sequencia p/ eu ver
-_G.__adv = _G.__adv or {}
-if #_G.__adv < 25 and type(_G.Game) == "table" then
-  local seen2 = {}
-  local function scan(t, d)
-    if type(t) ~= "table" or seen2[t] or d > 6 then return end
-    seen2[t] = true
-    for k, v in pairs(t) do
-      if type(v) == "string" and #v > 4 and #v < 90 and v:find("%a%a%a")
-         and (v:lower():find("advance") or v:lower():find("sequence")
-              or v:lower():find("avanç") or v:lower():find("sequência")
-              or v:lower():find("beyonder") or v:lower():find("talent")) then
-        if #_G.__adv < 25 then _G.__adv[#_G.__adv + 1] = v:sub(1, 70) end
-      elseif type(v) == "table" then scan(v, d + 1) end
-    end
-  end
-  for _, sn in ipairs({ "AdvancementSystem", "SequenceSystem", "PathwaySystem",
-      "PromotionSystem", "BeyonderSystem" }) do
-    pcall(scan, rawget(_G.Game, sn), 0)
-  end
-  for i, s in ipairs(_G.__adv) do rep["adv_" .. i] = s end
-end
-
-pcall(scan_flush)
-pcall(cn_flush)
-rep["hp"] = "re-sweep +" .. c .. " acum=" .. H.bf .. " scan=" .. _G.__scan_n
+-- ============ TUDO ABAIXO É DEV — NADA de scan/dump/IO em produção ============
 if H._dev then
+  -- probe: captura strings de avanço/sequencia p/ eu ver
+  _G.__adv = _G.__adv or {}
+  if #_G.__adv < 25 and type(_G.Game) == "table" then
+    local seen2 = {}
+    local function scan(t, d)
+      if type(t) ~= "table" or seen2[t] or d > 6 then return end
+      seen2[t] = true
+      for k, v in pairs(t) do
+        if type(v) == "string" and #v > 4 and #v < 90 and v:find("%a%a%a")
+           and (v:lower():find("advance") or v:lower():find("sequence")
+                or v:lower():find("avanç") or v:lower():find("sequência")
+                or v:lower():find("beyonder") or v:lower():find("talent")) then
+          if #_G.__adv < 25 then _G.__adv[#_G.__adv + 1] = v:sub(1, 70) end
+        elseif type(v) == "table" then scan(v, d + 1) end
+      end
+    end
+    for _, sn in ipairs({ "AdvancementSystem", "SequenceSystem", "PathwaySystem",
+        "PromotionSystem", "BeyonderSystem" }) do
+      pcall(scan, rawget(_G.Game, sn), 0)
+    end
+    for i, s in ipairs(_G.__adv) do rep["adv_" .. i] = s end
+  end
+  pcall(scan_flush)
+  pcall(cn_flush)
   local cnt = 0; for _ in pairs(_G.__cn) do cnt = cnt + 1 end
   rep["hp_cn"] = "CN capturados=" .. cnt .. " -> _tl_dump/_cn_misses.txt"
 end
+
+rep["hp"] = "re-sweep +" .. c .. " acum=" .. H.bf
 return "rs " .. c

@@ -1,6 +1,6 @@
 {
   "schema": 2,
-  "updated": "2026-08-31",
+  "updated": "2026-09-01",
   "note": "Índice embutido (fallback). O app tenta primeiro o repo ams-translator-traducoes no GitHub.",
   "games": [
     {
@@ -463,6 +463,27 @@
         {
           "src": "lord-of-mysteries/pt/hotpatch.lua",
           "dest": "Saved/Mods/lua/mods/tl_translate/pt/hotpatch.lua"
+        }
+      ],
+      "patch_notes": [
+        {
+          "version": "1.1",
+          "date": "2026-09-01",
+          "items": [
+            "Corrigido travamento do jogo em alguns PCs (varredura de menu sem limite).",
+            "Nenhum scan/dump roda mais na versão instalada — só a tradução.",
+            "Nome 'Fritar' -> 'Frye' (personagem).",
+            "'Tingen in the Mirror' -> 'Tingen espelhada'.",
+            "Menu ESC traduzido (Sets, Mundo, Exploracao, Divino...).",
+            "Nomes proprios deixados em ingles dentro de frases PT agora sao corrigidos (Espelho Magico do Desespero, Coroa do Conhecimento...)."
+          ]
+        },
+        {
+          "version": "1.0",
+          "date": "2026-08-31",
+          "items": [
+            "Primeira versao do pacote PT-BR para Lord of Mysteries (sobre o CPDD English patch)."
+          ]
         }
       ]
     }

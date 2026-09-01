@@ -138,9 +138,54 @@ class _GameCard(QFrame):
                 "o hot-reload do hotpatch.lua. Só pra desenvolvimento.")
             outer.addWidget(self.chk_dump)
 
+        # aviso de novidades no pacote de tradução (mostrado quando há versão
+        # de patch mais nova do que a última vista)
+        self.news = QLabel()
+        self.news.setObjectName("RowSub")
+        self.news.setWordWrap(True)
+        self.news.setTextFormat(Qt.TextFormat.RichText)
+        self.news.hide()
+        outer.addWidget(self.news)
+
         # começa em branco de propósito: o usuário TEM que apontar a pasta C7
         # (é o que libera o botão Instalar).
         self.refresh()
+        self._refresh_news()
+
+    # ------------------------------------------------------------------
+    def _refresh_news(self, mark_seen: bool = False) -> None:
+        """Mostra o que mudou no pacote de tradução desde a última vez."""
+        notes = self.game.patch_notes or []
+        if not notes:
+            self.news.hide()
+            return
+        try:
+            seen = (config.load().get("seen_patch_version") or {}).get(self.game.id)
+        except Exception:  # noqa: BLE001
+            seen = None
+        latest = notes[0].get("version", "")
+        new = [n for n in notes if str(n.get("version")) != str(seen)] \
+            if seen else notes[:1]
+        if not new or str(latest) == str(seen):
+            self.news.hide()
+            return
+        rows = []
+        for n in new[:3]:
+            its = "".join(f"<li>{i}</li>" for i in (n.get("items") or []))
+            rows.append(f"<b>v{n.get('version')}</b> ({n.get('date', '')})<ul>{its}</ul>")
+        self.news.setText(
+            "🔔 <b>Novidades no pacote de tradução</b> — clique em "
+            "<b>Baixar</b> e <b>Instalar</b> pra aplicar:<br>" + "".join(rows))
+        self.news.show()
+        if mark_seen:
+            try:
+                cfg = config.load()
+                sv = dict(cfg.get("seen_patch_version") or {})
+                sv[self.game.id] = latest
+                cfg["seen_patch_version"] = sv
+                config.save(cfg)
+            except Exception:  # noqa: BLE001
+                pass
 
     # ------------------------------------------------------------------
     def _browse(self) -> None:
@@ -254,8 +299,12 @@ class _GameCard(QFrame):
                 gamepatch.install(self.root, pt_src=lib.game_dir(self.game),
                                   dump=dump)
                 lib._mark_installed(self.game, self.root)
+
+            def _after_install():
+                self.refresh()
+                self._refresh_news(mark_seen=True)   # marca as novidades como vistas
             self.dlg._run_job(
-                "Instalando…", _do_install, self.refresh,
+                "Instalando…", _do_install, _after_install,
                 done_msg=("Instalado COM modo dump. Abra o jogo, navegue pelas "
                           "telas, feche, e rode 'gamepatch build'."
                           if dump else

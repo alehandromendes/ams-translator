@@ -357,6 +357,25 @@ local function scan_flush()
   pcall(function() T.File.SaveStringContentToFile(_SCAN_PATH, table.concat(out, "\n")) end)
 end
 
+-- DEV: captura strings CHINESAS que o CPDD não traduziu (missões etc) —
+-- _tl_dump/_cn_misses.txt. ok_string bloqueia CN (não tem %a), então isso
+-- roda ANTES, direto na varredura, só com H._dev.
+_G.__cn = _G.__cn or {}
+_G.__cn_dirty = false
+local function scan_cn(v)
+  if _G.__cn[v] then return end
+  _G.__cn[v] = true; _G.__cn_dirty = true
+end
+local function cn_flush()
+  if not _G.__cn_dirty or not H._dumpdir then return end
+  _G.__cn_dirty = false
+  local out = {}
+  for s in pairs(_G.__cn) do out[#out + 1] = (s:gsub("[\r\n]", " ")) end
+  local body, path = table.concat(out, "\n"), H._dumpdir .. "_cn_misses.txt"
+  pcall(function() T.File.SaveStringContentToFile(body, path) end)
+  pcall(function() T.File.SaveStringContentToFile(path, body) end)
+end
+
 local function sweep(roots, cap)
   local st = { c = 0, miss = 0 }; local seen = {}; local n = 0
   local function walk(t)
@@ -368,6 +387,10 @@ local function sweep(roots, cap)
         local ks = type(k) == "string" and k or ""
         if not SKIP[ks] and ks:sub(1,2) ~= "__" then
           if type(v) == "string" then
+            if H._dev and #v >= 2 and #v <= 400 and v:find("[\228-\233]")
+               and (DISPLAY_KEY[ks] or (#v <= 140)) then
+              pcall(scan_cn, v)
+            end
             if ok_string(k, v) then
               local p = tl_one(v)
               if p ~= v then
@@ -760,5 +783,10 @@ if #_G.__adv < 25 and type(_G.Game) == "table" then
 end
 
 pcall(scan_flush)
+pcall(cn_flush)
 rep["hp"] = "re-sweep +" .. c .. " acum=" .. H.bf .. " scan=" .. _G.__scan_n
+if H._dev then
+  local cnt = 0; for _ in pairs(_G.__cn) do cnt = cnt + 1 end
+  rep["hp_cn"] = "CN capturados=" .. cnt .. " -> _tl_dump/_cn_misses.txt"
+end
 return "rs " .. c

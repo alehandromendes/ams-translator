@@ -210,8 +210,9 @@ def _brace_slice(text: str, table_name: str) -> tuple[int, int] | None:
     return None
 
 
-# ajustes manuais de rótulo de menu (só na tabela shortMenuLabels — esses termos
-# curtos NÃO devem vazar pro resto do jogo). en -> pt.
+# Rótulos do menu ESC (tabela shortMenuLabels do CPDD). Sem acento — pedido do
+# usuário. Os 6 primeiros são escolha explícita dele; o resto é padrão curto.
+# FONTE DA VERDADE: o MENU_PT do hotpatch.lua espelha este dict.
 _MENU_LABELS = {
     "Gear": "Sets",
     "Explore": "Mundo",
@@ -219,6 +220,30 @@ _MENU_LABELS = {
     "Pathway": "Divino",
     "Skills": "Skills",
     "Dungeon": "Dungeon",
+    "Style": "Estilo",
+    "Arena": "Arena",
+    "Talent": "Talento",
+    "Relics": "Reliquias",
+    "Puppets": "Fantoches",
+    "Allies": "Aliados",
+    "Club": "Clube",
+    "Castle": "Castelo",
+    "Quests": "Missoes",
+    "Family": "Familia",
+    "Bonds": "Vinculos",
+    "Awards": "Premios",
+    "Guide": "Guia",
+    "Creator": "Criador",
+    "Friends": "Amigos",
+    "Profile": "Perfil",
+    "Home": "Inicio",
+    "Bag": "Mochila",
+    "News": "Noticias",
+    "Mail": "Correio",
+    "Ranking": "Ranking",
+    "Unequip": "Desequipar",
+    "Settings": "Config",
+    "Exit": "Sair",
 }
 _MENU_TABLE = "shortMenuLabels"
 

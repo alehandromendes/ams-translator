@@ -96,17 +96,11 @@ local OVR = {
   ["Personal"] = "Pessoal", ["Fashion Level"] = "Nível de Moda",
   ["Achievement Points"] = "Pontos de Conquista",
   ["Pathway"] = "Caminho", ["Club"] = "Clube", ["Competition"] = "Competição",
-  ["Dungeon"] = "Masmorra", ["Family"] = "Família", ["Castle"] = "Castelo",
-  -- menu ESC (HUD middle menu) — rótulos de 1 palavra
-  ["Style"] = "Estilo", ["Arena"] = "Arena", ["Explore"] = "Explorar",
-  ["Gear"] = "Equipamento", ["Skills"] = "Habilidades", ["Talent"] = "Talento",
-  ["Relics"] = "Relíquias", ["Puppets"] = "Fantoches", ["Allies"] = "Aliados",
-  ["Quests"] = "Missões", ["DarkCity"] = "Cidade Sombria", ["Dark City"] = "Cidade Sombria",
-  ["Bonds"] = "Vínculos", ["Awards"] = "Prêmios", ["Guide"] = "Guia",
-  ["Creator"] = "Criador", ["Unequip"] = "Desequipar",
+  ["Family"] = "Família", ["Castle"] = "Castelo",
+  -- os rótulos do menu ESC (Style/Gear/Skills/Explore/DarkCity/...) NÃO ficam
+  -- aqui: são tratados pelo seed do shortMenuLabels (MENU_PT lá em cima).
+  -- Palavras curtas soltas no OVR renomeavam enums e crashavam o jogo.
   ["Character ID"] = "ID do personagem", ["Level cap reached"] = "Limite de nível alcançado",
-  -- (Home/News/Bag/Ranking/Profile: deixados em EN — palavras curtas que o jogo
-  --  pode usar como enum; traduzir arriscava quebrar navegação)
   ["Cult"] = "Culto", ["Unranked"] = "Sem classificação", ["All Pathways"] = "Todos os Caminhos",
   ["Spectator"] = "Espectador", ["Bard"] = "Bardo", ["Seer"] = "Vidente",
   ["Warrior"] = "Guerreiro", ["Apprentice"] = "Aprendiz", ["Mystery Pryer"] = "Investigador de Mistérios",
@@ -393,15 +387,18 @@ local now = H.runs
 -- so usada como texto de exibicao — nunca comparada) via debug.getupvalue no
 -- proprio OnRefresh que o CPDD instalou. Roda 1x (H.menu_seeded).
 if not H.menu_seeded then
+  -- ESPELHA patch_pt._MENU_LABELS (sem acento — pedido do usuário). Os 6
+  -- primeiros são escolha explícita dele: Gear=Sets, Explore=Mundo,
+  -- DarkCity=Exploracao, Pathway=Divino, Skills=Skills, Dungeon=Dungeon.
   local MENU_PT = {
-    Style="Estilo", Explore="Explorar", Dungeon="Masmorra", Arena="Arena",
-    Gear="Equipamento", Skills="Habilidades", Talent="Talento", Pathway="Caminho",
-    Relics="Relíquias", Puppets="Fantoches", Allies="Aliados", Club="Clube",
-    Castle="Castelo", Quests="Missões", Family="Família", Bonds="Vínculos",
-    Awards="Prêmios", Guide="Guia", Creator="Criador", Friends="Amigos",
-    DarkCity="Cidade Sombria", Profile="Perfil", Home="Início", Bag="Mochila",
-    News="Notícias", Mail="Correio", Ranking="Ranking", Unequip="Desequipar",
-    Settings="Configurações", Exit="Sair",
+    Gear="Sets", Explore="Mundo", DarkCity="Exploracao", Pathway="Divino",
+    Skills="Skills", Dungeon="Dungeon",
+    Style="Estilo", Arena="Arena", Talent="Talento", Relics="Reliquias",
+    Puppets="Fantoches", Allies="Aliados", Club="Clube", Castle="Castelo",
+    Quests="Missoes", Family="Familia", Bonds="Vinculos", Awards="Premios",
+    Guide="Guia", Creator="Criador", Friends="Amigos", Profile="Perfil",
+    Home="Inicio", Bag="Mochila", News="Noticias", Mail="Correio",
+    Ranking="Ranking", Unequip="Desequipar", Settings="Config", Exit="Sair",
   }
   local function seed_tbl(tbl)
     local hit = 0

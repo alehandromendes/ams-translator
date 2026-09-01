@@ -529,6 +529,21 @@ else
     if type(r) == "string" then
       local p = _en2pt_lookup and _en2pt_lookup(r)
       if p then _getrow_field_hits = _getrow_field_hits + 1; return p end
+      -- DEV: registra o que passou por GetLangStr/GetRow sem tradução —
+      -- texto de missão/diálogo que nem o CPDD nem a nossa memória pegaram.
+      if _dev and #r >= 2 and #r <= 800 then
+        if r:find("[\228-\233]") then
+          _G.__cn = _G.__cn or {}
+          if not _G.__cn[r] then _G.__cn[r] = true; _G.__cn_dirty = true end
+        elseif r:find("%a%a%a%a") and not r:find("^%u[%u_%d]+$")
+               and not r:find("[\195\128-\195\191]") and r:find("%s") then
+          _G.__scan = _G.__scan or {}
+          if not _G.__scan[r] then
+            _G.__scan[r] = true; _G.__scan_n = (_G.__scan_n or 0) + 1
+            _G.__scan_dirty = true
+          end
+        end
+      end
       return r
     elseif type(r) == "table" then
       return translate_row(r)

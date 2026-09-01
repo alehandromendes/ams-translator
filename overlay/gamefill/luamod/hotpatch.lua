@@ -299,6 +299,25 @@ local function strip_accents(s)
   return (s:gsub("\195[\128-\191]", _ACC))
 end
 
+-- glossário de nomes próprios que a tradução automática às vezes deixa em EN
+-- DENTRO de frases já em PT. Aplicado como gsub no resultado. plain=false só
+-- onde precisa; a maioria é literal.
+local _GLOSS = {
+  { "Magic Mirror of Despair", "Espelho Mágico do Desespero" },
+  { "Tingen in the Mirror", "Tingen no Espelho" },
+  { "Knowledge Crown", "Coroa do Conhecimento" },
+  { "Crown of Knowledge", "Coroa do Conhecimento" },
+  { "Sealed Artifact", "Artefato Selado" },
+  { "Nighthawks", "Vigias Noturnos" }, { "Nighthawk", "Vigia Noturno" },
+  { "Beyonders", "Beyonders" },
+}
+local function gloss(s)
+  for _, pr in ipairs(_GLOSS) do
+    if s:find(pr[1], 1, true) then s = s:gsub(pr[1]:gsub("(%W)", "%%%1"), pr[2]) end
+  end
+  return s
+end
+
 local function tl_one(v)
   if type(v) ~= "string" or #v < 2 or #v > 4000 then return v end
   if OVR[v] then return strip_accents(OVR[v]) end
@@ -306,9 +325,14 @@ local function tl_one(v)
   if v:find("[\228-\233]") or v:find("^[/%.#@<]") or v:find("^%u[%u_%d]+$") then return v end
   local p = en2pt(v)
   local ml = (#v < 20) and (#v * 0.6) or (#v * 0.35)
-  if p and p ~= v and #p >= math.max(3, ml) then return strip_accents(p) end
+  if p and p ~= v and #p >= math.max(3, ml) then return strip_accents(gloss(p)) end
   local fb = pat_fallback(v)
   if fb then return strip_accents(fb) end
+  -- frase que JÁ está em PT mas com pedaços em EN (nome próprio) — conserta
+  if v:find("[\195\128-\195\191]") then
+    local g = gloss(v)
+    if g ~= v then return strip_accents(g) end
+  end
   return v
 end
 

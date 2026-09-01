@@ -419,8 +419,8 @@ local function sweep(roots, cap)
               local p = tl_one(v)
               if p ~= v then
                 pcall(function() t[k] = p end); st.c = st.c + 1
-              else
-                pcall(scan_capture, v)
+              elseif H._dev then
+                pcall(scan_capture, v)   -- captura de faltas: SÓ dev
               end
             end
           elseif type(v) == "table" then walk(v) end
@@ -745,7 +745,10 @@ end
 -- cooldown por contador. Depois da varredura grande, espaça BEM mais (só
 -- pra pegar painel novo que abriu) — antes rodava a cada 3 ticks pra sempre
 -- com cap 50k e travava o jogo de alguns usuarios.
-local RS_GAP = H.big_done and 8 or 3
+-- pós-varredura: 8 ticks; se 4 re-sweeps seguidos não traduziram nada, cai
+-- pra 24 ticks (a UI já está estável — quase nada pra fazer).
+local RS_GAP = 3
+if H.big_done then RS_GAP = ((H.rs_idle or 0) >= 4) and 24 or 8 end
 if H.last_sweep and (now - H.last_sweep) < RS_GAP then rep["hp"] = "cd"; return "cd" end
 H.last_sweep = now
 local roots = {}
@@ -774,35 +777,37 @@ for name, mod in pairs(package.loaded) do
 end
 local c = sweep(roots, H.big_done and 18000 or 40000)   -- cap baixo pós-big
 H.bf = (H.bf or 0) + c
+H.rs_idle = (c == 0) and ((H.rs_idle or 0) + 1) or 0    -- re-sweeps ociosos seguidos
 
--- probe: captura strings de avanço/sequencia p/ eu ver
-_G.__adv = _G.__adv or {}
-if #_G.__adv < 25 and type(_G.Game) == "table" then
-  local seen2 = {}
-  local function scan(t, d)
-    if type(t) ~= "table" or seen2[t] or d > 6 then return end
-    seen2[t] = true
-    for k, v in pairs(t) do
-      if type(v) == "string" and #v > 4 and #v < 90 and v:find("%a%a%a")
-         and (v:lower():find("advance") or v:lower():find("sequence")
-              or v:lower():find("avanç") or v:lower():find("sequência")
-              or v:lower():find("beyonder") or v:lower():find("talent")) then
-        if #_G.__adv < 25 then _G.__adv[#_G.__adv + 1] = v:sub(1, 70) end
-      elseif type(v) == "table" then scan(v, d + 1) end
-    end
-  end
-  for _, sn in ipairs({ "AdvancementSystem", "SequenceSystem", "PathwaySystem",
-      "PromotionSystem", "BeyonderSystem" }) do
-    pcall(scan, rawget(_G.Game, sn), 0)
-  end
-  for i, s in ipairs(_G.__adv) do rep["adv_" .. i] = s end
-end
-
-pcall(scan_flush)
-pcall(cn_flush)
-rep["hp"] = "re-sweep +" .. c .. " acum=" .. H.bf .. " scan=" .. _G.__scan_n
+-- ============ TUDO ABAIXO É DEV — NADA de scan/dump/IO em produção ============
 if H._dev then
+  -- probe: captura strings de avanço/sequencia p/ eu ver
+  _G.__adv = _G.__adv or {}
+  if #_G.__adv < 25 and type(_G.Game) == "table" then
+    local seen2 = {}
+    local function scan(t, d)
+      if type(t) ~= "table" or seen2[t] or d > 6 then return end
+      seen2[t] = true
+      for k, v in pairs(t) do
+        if type(v) == "string" and #v > 4 and #v < 90 and v:find("%a%a%a")
+           and (v:lower():find("advance") or v:lower():find("sequence")
+                or v:lower():find("avanç") or v:lower():find("sequência")
+                or v:lower():find("beyonder") or v:lower():find("talent")) then
+          if #_G.__adv < 25 then _G.__adv[#_G.__adv + 1] = v:sub(1, 70) end
+        elseif type(v) == "table" then scan(v, d + 1) end
+      end
+    end
+    for _, sn in ipairs({ "AdvancementSystem", "SequenceSystem", "PathwaySystem",
+        "PromotionSystem", "BeyonderSystem" }) do
+      pcall(scan, rawget(_G.Game, sn), 0)
+    end
+    for i, s in ipairs(_G.__adv) do rep["adv_" .. i] = s end
+  end
+  pcall(scan_flush)
+  pcall(cn_flush)
   local cnt = 0; for _ in pairs(_G.__cn) do cnt = cnt + 1 end
   rep["hp_cn"] = "CN capturados=" .. cnt .. " -> _tl_dump/_cn_misses.txt"
 end
+
+rep["hp"] = "re-sweep +" .. c .. " acum=" .. H.bf
 return "rs " .. c

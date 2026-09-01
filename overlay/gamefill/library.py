@@ -76,6 +76,13 @@ class Game:
     game_markers: list[str] = field(default_factory=list)     # confirmam a raiz certa
     dependency: Dependency | None = None
     files: list[TFile] = field(default_factory=list)
+    # histórico de correções do pacote de tradução, mais recente primeiro:
+    # [{"version": "1.1", "date": "2026-09-01", "items": ["...", "..."]}]
+    patch_notes: list[dict] = field(default_factory=list)
+
+    @property
+    def patch_version(self) -> str:
+        return self.patch_notes[0]["version"] if self.patch_notes else ""
 
     @property
     def lang_path(self) -> str:
@@ -108,6 +115,7 @@ def _parse(data: dict) -> list[Game]:
             game_markers=list(g.get("game_markers", [])),
             dependency=dep,
             files=[TFile(f["src"], f["dest"]) for f in g.get("files", [])],
+            patch_notes=list(g.get("patch_notes", [])),
         ))
     return games
 

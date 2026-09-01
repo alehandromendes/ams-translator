@@ -12,9 +12,12 @@ local SELF = MODS .. "lua/mods/tl_translate/"
 local DUMP = MODS .. "lua/_tl_dump/"
 
 -- CANÁRIO: prova que este arquivo executou (PersonalLoad funcionou). Escreve
--- sempre, antes de qualquer lógica. Se pt/_loaded.txt não aparecer no jogo,
--- o bootstrap do CPDD não carregou o mod.
+-- SÓ NA VERSÃO DE DEV (marcador _tl_dump/.dev ou /run). Se pt/_loaded.txt não
+-- aparecer, o bootstrap do CPDD não carregou o mod. Em produção não escreve nada.
 pcall(function()
+  local dev = ((File.LoadFile(DUMP .. "run") or "") ~= "")
+    or ((File.LoadFile(DUMP .. ".dev") or "") ~= "")
+  if not dev then return end
   local p = SELF .. "pt/_loaded.txt"
   local body = "tl_translate Init.lua executou\n"
   if File.SaveStringContentToFile then
@@ -325,6 +328,8 @@ do
 end
 
 local function write_apply_status()
+  -- STATUS DE DUMP = só na versão de dev (marcador _tl_dump/.dev ou /run).
+  if not (_G.__hp and _G.__hp._dev) then return end
   local lines = { "tl_translate APPLY status  (" .. #APPLY_LIST .. " modulos)" }
   local total = 0
   local shown = {}

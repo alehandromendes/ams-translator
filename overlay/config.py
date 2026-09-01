@@ -86,6 +86,8 @@ DEFAULTS: dict = {
     "reverse_target": "zh-CN",
     # pasta de cada jogo escolhida no diálogo "Tradução de jogos": {id: caminho}
     "game_roots": {},
+    # última versão de patch de tradução que o usuário já viu: {id: "1.1"}
+    "seen_patch_version": {},
 }
 
 

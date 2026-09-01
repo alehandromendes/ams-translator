@@ -52,5 +52,28 @@ Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExe}"; Tasks: desktopico
 Filename: "{app}\{#AppExe}"; Description: "{cm:LaunchProgram,{#AppName}}"; Flags: nowait postinstall skipifsilent runascurrentuser
 
 [UninstallDelete]
-; dados do usuário ficam em %LOCALAPPDATA%\AMS Translator e NÃO são removidos.
+; dados do usuário (config, traduções baixadas, backups) ficam em
+; %LOCALAPPDATA%\AMS Translator por padrão — só saem se o usuário confirmar
+; no prompt abaixo ([Code] CurUninstallStepChanged).
 Type: filesandordirs; Name: "{app}\_internal"
+
+[Code]
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+var
+  DataDir: string;
+  Msg: string;
+begin
+  if CurUninstallStep = usPostUninstall then
+  begin
+    DataDir := ExpandConstant('{localappdata}\AMS Translator');
+    if DirExists(DataDir) then
+    begin
+      Msg := 'Apagar também as traduções baixadas, configurações e backups?' + #13#10 + #13#10 +
+        DataDir + #13#10 + #13#10 +
+        'Escolha Não se for reinstalar depois — assim não precisa baixar as ' +
+        'traduções de novo.';
+      if MsgBox(Msg, mbConfirmation, MB_YESNO or MB_DEFBUTTON2) = IDYES then
+        DelTree(DataDir, True, True, True);
+    end;
+  end;
+end;

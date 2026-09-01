@@ -12,6 +12,11 @@ funciona com qualquer jogo. Duas frentes:
   direto de uma [biblioteca no GitHub][lib], sempre com **backup do original** e
   restauração em um clique.
 
+**Multi-jogo por design:** o `.exe` não embute nada específico de um jogo — nem
+dados de tradução, nem o mod loader. Tudo isso é baixado por jogo, sob demanda,
+da [biblioteca][lib]. Traduzir um jogo novo não custa nenhum byte a mais no
+instalador de quem só joga outro.
+
 ---
 
 ## ⬇️ Download
@@ -76,10 +81,11 @@ Botão **Tradução de jogos** na barra de ações. A tradução **não vem no i
    **Install English**. Depois volte e clique em **Verificar**.
    *O CPDD nunca é hospedado nem redistribuído aqui — só baixamos o mesmo `.exe`
    da [release da Lani27](https://github.com/Lani27/lord-of-mysteries-english-patch/releases/latest).*
-3. **Baixar** — baixa a tradução PT-BR (uns 100 arquivos `.lua`, ~37 MB) pra
+3. **Baixar** — baixa o mod completo (107 arquivos `.lua`, ~37 MB — loader,
+   camada de tradução em runtime e a memória de tradução) pra
    `%LOCALAPPDATA%\AMS Translator\traducoes\`.
-4. **Instalar** — cria só `Saved\Mods\lua\mods\tl_translate\` + `cpdd_user_settings.lua`
-   no jogo. **Não modifica nenhum arquivo do CPDD.**
+4. **Instalar** — coloca tudo em `Saved\Mods\lua\mods\tl_translate\` +
+   `cpdd_user_settings.lua` no jogo. **Não modifica nenhum arquivo do CPDD.**
 5. **Reinicie o jogo.** Espere ~30 s na tela inicial — o texto vai virando PT.
 6. **Restaurar original** — remove o mod (`tl_translate\` + `cpdd_user_settings.lua`);
    o jogo volta ao CPDD puro (inglês). Reinicie o jogo.
@@ -122,6 +128,8 @@ Criado no primeiro uso, ao lado do executável (ou em `%LOCALAPPDATA%\AMS Transl
 | `max_pages` | `10` | quantas capturas a galeria mantém |
 | `auto_advance_gap_seconds` | `60` | intervalo mínimo para a galeria pular para a captura nova |
 | `reverse_panel_visible` | `true` | mostra o painel PT → 中文 |
+| `always_on_top` | `false` | manter a janela sempre sobre as outras |
+| `game_roots` | `{}` | pasta salva de cada jogo no diálogo "Tradução de jogos" |
 
 ---
 
@@ -154,15 +162,15 @@ se faltar, e compila o assistente.
 ### Ferramentas de linha de comando
 
 ```bash
-# Gera/atualiza a tradução do CPDD English patch (RuntimeTextGemini.lua + Init.lua):
-# traduz o inglês do patch -> PT-BR, fechando a ponte 中文 -> EN -> PT-BR
-python -m overlay.gamefill.patch_pt [--status | --restore | --no-init]
+# Regenera a memória de tradução EN->PT (os _en2pt_*.lua da biblioteca):
+# traduz o inglês do CPDD -> PT-BR, fechando a ponte 中文 -> EN -> PT-BR
+python -m overlay.gamefill.patch_pt [--status | --restore]
 
-# Preenche as lacunas de um mod de localização PT da comunidade (formato .parts/*.lua)
-python -m overlay.gamefill [--dry-run | --restore]
+# Empacota/instala o mod tl_translate direto numa pasta de jogo (uso dev):
+python -m overlay.gamefill.gamepatch <status|install|restore> [pasta_do_jogo]
 ```
 
-Ambos fazem backup do original e são reexecutáveis (retomam de onde pararam).
+Reexecutáveis (retomam de onde pararam) e com backup do original.
 
 ---
 
@@ -180,9 +188,12 @@ atalho global (PgUp região / PgDn tela inteira)  ─ ou ─  Ctrl+V
   → galeria: filmstrip + navegação + auto-avanço (buffer circular de 10)
 ```
 
-A tradução de mods (`overlay/gamefill/`) trabalha sobre os arquivos `.lua` que o mod de
-tradução do jogo já instalou, protegendo a marcação (`<InvHighlight>`, `<Mark id=…>`,
-`%s`, quebras de linha) e fixando termos de jogo ambíguos via `game_terms.csv`
+A tradução de jogos roda em cima do mod loader que o jogo já usa (no caso de LOTM,
+o `LOMModLoader` do CPDD English patch) — nunca editando arquivo nenhum dele. O app
+baixa um mod próprio (`tl_translate`) que se registra como extensão de usuário e, em
+runtime, varre os dados já carregados trocando EN→PT com uma memória de tradução +
+um dicionário curado de termos de UI, protegendo marcação (`<InvHighlight>`,
+`<Mark id=…>`, `%s`, quebras de linha) e fixando termos ambíguos via `game_terms.csv`
 (`gear` → equipamento, `dungeon` → masmorra, `Beyonder`, `Sequência`…). Só escreve na
 pasta do usuário do jogo (`Saved/Mods/`), fora da verificação de integridade dos `.pak`.
 

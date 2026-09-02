@@ -93,6 +93,11 @@ Botão **Tradução de jogos** na barra de ações. A tradução **não vem no i
 O status no diálogo mostra sempre onde você está: `✓ pasta do jogo`,
 `✓ CPDD detectado` / `✗ CPDD não encontrado`, e o passo seguinte da tradução.
 
+Quando o pacote de tradução recebe correções, o app avisa com **"🔔 Novidades
+no pacote de tradução"** listando o que mudou — é só clicar em **Baixar** e
+**Instalar** de novo. O mod roda **só a tradução** dentro do jogo: nenhum scan,
+dump ou processo de diagnóstico na versão instalada.
+
 ### Zerar tudo (voltar o jogo ao original)
 
 1. **Restaurar original** no app (ou apague `…\C7\Saved\Mods\lua\mods\tl_translate\`

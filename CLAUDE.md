@@ -24,6 +24,10 @@
 
 6. **`.exe` é multi-jogo — nada de jogo específico embutido.** `Init.lua`, `hotpatch.lua`, `cpdd_user_settings.lua` e toda a camada de tradução são BAIXADOS do repo de traduções (`translations_index.json` `files[]` com `dest` por arquivo). `overlay.spec` NÃO empacota `luamod/` nem `prebuilt/` (só fallback dev).
 
+7. **SEMPRE atualizar o `README.md` quando houver mudança visível ao usuário** — nova feature, fluxo de instalação diferente, novo comportamento, rename, número de arquivos baixados, tabela de config, limitações. O README é a única doc que o usuário lê; PR sem README atualizado (quando aplicável) está incompleto. Conferir também: seção "Download", "Modo 2 — Tradução de jogos" (passo a passo), "Configuração — overlay_config.json" (tabela de chaves/padrões), "Limitações".
+
+8. **SEMPRE registrar a mudança em `patch_notes` quando o pacote de tradução muda** (`hotpatch.lua`, `pt/*.lua`, dados) — nova entrada `{version, date, items[]}` no topo de `games[].patch_notes` em `translations_index.json` **E** no `index.json` do repo de traduções. É o que dispara a notificação "🔔 Novidades" pro usuário.
+
 ---
 
 ## 🛠️ COMANDOS
@@ -95,6 +99,10 @@ download/AMSTranslatorSetup.exe (Git LFS)
 
 ## 🚀 ENTREGA
 
-- Branch de trabalho, PR → `main`. Depois do merge: `gh release create vX.Y.Z ... download/AMSTranslatorSetup.exe`.
-- Mudança em `hotpatch.lua`/`Init.lua`/`pt/*.lua`: commitar nos **dois** repos (dev `luamod/` + `ams-translator-traducoes/lord-of-mysteries/pt/`) — o app baixa do segundo.
-- Mudança de Python/spec/iss: rebuild do `.exe` + instalador + `cp` pro `download/`.
+Checklist de fim de sessão (fazer TUDO que se aplicar antes do PR):
+
+1. **`README.md`** atualizado se houve mudança visível ao usuário (regra 7). Ver seções Download / Modo 2 / Configuração / Limitações.
+2. **`patch_notes`** com nova entrada se o pacote de tradução mudou (regra 8) — nos dois arquivos (`translations_index.json` + `index.json` do repo de traduções).
+3. Mudança em `hotpatch.lua`/`Init.lua`/`pt/*.lua`: commitar nos **dois** repos (dev `luamod/` + `ams-translator-traducoes/lord-of-mysteries/pt/`) — o app baixa do segundo.
+4. Mudança de Python/spec/iss: rebuild do `.exe` + instalador (esperar `ISCC.exe` SAIR, não só o arquivo existir) + `cp` pro `download/`.
+5. Branch de trabalho → PR → `main`. Depois do merge: `gh release create vX.Y.Z ... download/AMSTranslatorSetup.exe` (o link `releases/latest` do README aponta pra lá).
